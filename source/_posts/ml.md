@@ -1,7 +1,7 @@
 ---
 title: 机器学习基础
 date: 2022-05-03 20:35:22
-tags: data
+tags: ml
 ---
 # 实验概述
 
@@ -28,7 +28,7 @@ NN_ARCHITECTURE = [
 
 ## 激活函数
 
-​	激活函数为神经网络增添了非线性，能够拟合更复杂的模型。且选择合适的激活函数可以防止梯度爆炸与梯度消失，本文使用relu作为默认的激活函数。
+激活函数为神经网络增添了非线性，能够拟合更复杂的模型。且选择合适的激活函数可以防止梯度爆炸与梯度消失，本文使用relu作为默认的激活函数。
 
 <img src="/images/common%20activation%20function.png" alt="常见的激活函数" style="zoom: 67%;" />
 
@@ -62,7 +62,7 @@ def softmax_backward(y_hat, y):
 
 ## 前向传播
 
-设每一层的输出为$a^l$, 则有$z^{l} = W^l \cdot a^{l - 1} + b^l, a^l = g^l(z^l) $, 如下图所示。
+设每一层的输出为$a^l$, 则有$z^{l} = W^l \cdot a^{l - 1} + b^{l}, a^{l} = g^{l}(z^{l})$, 如下图所示。
 
 <img src="/images/matrices%20in%20a%20forward%20step.png" alt="前向传播矩阵" style="zoom: 80%;" />
 
