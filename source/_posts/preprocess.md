@@ -1,7 +1,7 @@
 ---
 title: preprocess
 date: 2022-01-07 17:14:04
-tags: ml
+tags: machine learning
 ---
 
 # Preprocess

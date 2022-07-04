@@ -1,7 +1,7 @@
 ---
 title: 机器学习基础
 date: 2022-05-03 20:35:22
-tags: ml
+tags: machine learning
 ---
 # 实验概述
 
