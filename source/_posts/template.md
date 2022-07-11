@@ -686,9 +686,20 @@ lq - 异或序列
 
 ### 组合
 
-1
-1 1
-1 2 1
+一步dp  
+1  
+1 1  
+1 2 1  
+1 3 3 1  
+
+回推状态转移 映射到杨辉三角中  
+通过杨辉三角一次向右逆向展开，也就得到了杨辉三角上一列和的表达式  
+
+
+$$
+    \sum_{i = 0} ^{k} C_{n + i}^n = C_{}
+$$
+
 
 ```c++
 const int maxn = 61;
@@ -702,6 +713,28 @@ void make_c() {
         }
     }
 }
+
+// lucas定理 
+// mod = 1e5 时  
+LL fact[maxn+5];
+LL a[maxn+10];
+LL inv[maxn+10];
+void init(){
+    a[0] = a[1] = 1;
+    fact[0] = fact[1] = 1;
+    inv[1] = 1;
+    for(int i = 2; i <= 100005; i++)
+    {
+        fact[i] = fact[i-1] * i % mod;
+        inv[i] = (mod - mod/i)*inv[mod%i]%mod;
+        a[i] = a[i-1] * inv[i] % mod;
+    }
+}
+
+LL C(int n, int m){
+    return fact[n]*a[n-m]%mod*a[m]%mod;
+}
+
 ```
 
 ### 逆元
