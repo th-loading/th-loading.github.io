@@ -1,5 +1,5 @@
 ---
-ititle: 基本算法思路
+title: 基本算法思路
 date: 2022-01-30 16:01:59
 tags: algorithm
 ---
