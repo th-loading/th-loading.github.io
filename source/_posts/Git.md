@@ -152,7 +152,7 @@ git remtedeote add origin https://github.com/USER/REPO.git
 # 查看情况
 git remote -v
 git remote rm origin
-# 借助PAT(Personal Access Token)连接已有的库 
+# 借助PAT token (Personal Access Token)连接已有的库 
 # git clone = git fetch + git checkout
 git clone https://pat@github.com/<account>/<repo>.git
 # 上传与更新

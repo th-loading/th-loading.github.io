@@ -320,4 +320,3 @@ $$
 
 $p(\theta|x)$即 posterior distribution
 
-

@@ -1,7 +1,6 @@
 ---
 title: A survey on 5G channel encoding technology
-date: 2022-05-06 19:52:20
-tags: dsp
+date: 2021-12-06 19:52:20
 ---
 
 

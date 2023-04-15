@@ -1,7 +1,7 @@
 ---
 title: pandas basic
 date: 2021-12-12 09:55:24
-tags: machine learning
+tags: Machine Learning
 ---
 
 # Pandas

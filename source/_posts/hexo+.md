@@ -1,7 +1,7 @@
 ---
 title: 多设备更新博客
 date: 2023-02-07 18:27:02 
-tags: hexo
+tags: Hexo
 ---
 
 # 原由
@@ -10,6 +10,5 @@ tags: hexo
 
 # 前置知识
 
-[Git基础](Git.md) [hexo配置](/hexo.md)
-
+[Git基础](../../../../2023/02/07/Git) [hexo配置](../../../../2021/10/07/hexo)
 

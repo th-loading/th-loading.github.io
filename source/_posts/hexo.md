@@ -1,7 +1,7 @@
 ---
-title: hexo
+title: Hexo配置
 date: 2021-10-07 22:05:38
-tags: hexo
+tags: Hexo
 ---
 # Hexo
 

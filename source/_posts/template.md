@@ -1,7 +1,7 @@
 ---
 title: 算法基本模板
 date: 2022-07-04 11:51:49
-tags: algorithm
+tags: Algorithm
 ---
 
 # 模板
@@ -638,6 +638,28 @@ if (!dp[l][j - 1].size()) {
 
 <img src="/images/circle-1.png" alt="image-20220326223751746" style="zoom:50%;" />
 
+### 易错
+
+```c++
+// 容易忽略冗余的状态 leetcode-1977
+for (int i = 1; i <= n; i++) {
+    // 这里j定义为长度，但由于f[i][j]的定义为小于等于j，累加仍然需要，与括号匹配类似，"不合理"的dp不带f[i][j]是不合理，且有时候有些dp需要预留位置。
+    for (int j = 1; j <= n; j++) {
+    // 若使用 for (int j = 1; j <= i; j++) 对于 i = 4, j = 3, 存在f[1][2]这种情况，dp[1][2]不合理不代表f[1][2]无意义
+        int id1 = i - j, id2 = i - 2 * j;
+        if (id1 >= 0 && num[id1] != '0') dp[i][j] = f[id1][j - 1];
+        if (id2 >= 0 && num[id1] != '0' && num[id2] != '0') {
+            int vv = v[id1 + 1][id2 + 1], v1 = id1 + vv, v2 = id2 + vv;
+            if (v1 < id1 + j && num[v2] < num[v1]) dp[i][j] = (dp[i][j] + dp[id1][j]) % MOD;
+            else if (v1 >= id1 + j) dp[i][j] = (dp[i][j] + dp[id1][j]) % MOD; 
+        }
+        f[i][j] = (f[i][j - 1] + dp[i][j]) % MOD;
+    }
+}
+```
+
+
+
 ## 博弈论
 
 ### IGC博弈
@@ -715,7 +737,7 @@ void make_c() {
 }
 
 // lucas定理 
-// mod = 1e5 时  
+// mod = 1e5 时
 LL fact[maxn+5];
 LL a[maxn+10];
 LL inv[maxn+10];
@@ -723,10 +745,10 @@ void init(){
     a[0] = a[1] = 1;
     fact[0] = fact[1] = 1;
     inv[1] = 1;
-    for(int i = 2; i <= 100005; i++)
+    for(int i = 2; i <= maxn; i++)
     {
         fact[i] = fact[i-1] * i % mod;
-        inv[i] = (mod - mod/i)*inv[mod%i]%mod;
+        inv[i] = (mod - mod/i) * inv[mod%i]%mod;
         a[i] = a[i-1] * inv[i] % mod;
     }
 }
@@ -885,6 +907,8 @@ ull quick_pow(ull a, ull b, ull mod) {
     return res;
 }
 ```
+
+
 
 ### 素数筛
 
@@ -1584,11 +1608,11 @@ ls-37
 ```c++
 // 计数
 
-// 记录小于等于x的数值个数
+// 记录小于等于x的数值个数s
 auto pos = ub(all(v), x) - v.begin();
 // 记录大于x的数值个数
 sz(v) - pos;
-// 记录小于x的数值个数 大于等于同理
+// 记录小于x的数值个数 大于等于同理,指针指向第一个不小于x的位置
 auto pos = lb(all(v), x) - v.begin();
 
 // 插入使得数组递增 - 在第一个不大于x的位置上插入 - 本来的意义
@@ -1722,19 +1746,19 @@ else if (cur == 1 && graph[cur].size() == 0) isleave = true;
 
 ### bit树
 
-
-
 树状数组
 
 ```c++
+// c数组为[1, maxn]
+
+vector<int> c;
 static int lowbit(int x) {
     return x & (-x);
 }
 
-// a[maxn]
-void update(int x, int v) {
+void update(int x, int maxn, int v) {
     // x += 1 若nums从0开始
-    for(int i = x; i < maxn; i += lowbit(i))
+    for(int i = x; i <= maxn; i += lowbit(i))
         c[i] += v;
 }
 int getsum(int x) {
@@ -1742,10 +1766,21 @@ int getsum(int x) {
     for(int i = x; i >= 1; i -= lowbit(i))
         sum += c[i];
     return sum;
-}	
+}
+
 int sumRange(int i, int j) {
-    // i + 1 到 j + 1;
-    return sum[j + 1] - sum[i];
+    // 从i到j
+    return getsum(j) - getsum(i - 1);
+}
+
+// 示例
+int main() {
+    int n = 5;
+    c.assign(n + 1, 0);
+    for (int i = 1; i <= n; i++) {
+        update(i, n, 1);
+    }
+    cout << sumRange(2, 5);
 }
 ```
 
@@ -1772,104 +1807,117 @@ void operator += (const node &t){
 ```
 
 ```c++
-// 线段树 完全二分树
-// 2n - 4n
-// 记录范围的完全二叉树, 类似于堆,注意节点
-// 自顶而下的更新
+/*  
+10分钟以内，顺利可敲完
+线段树 完全二分树 占用空间大小2n - 4n
+将问题拆分成二分的区间，通过push_up在回溯结束后维护各个区间的值。
+如果要区间更新，需要在查询的过程中，通过push_down传递lazy_tag，同时还原对应节点的真实值。
+区间赋值的tag就是值本身，区间加减则通过加减。
+lv, rv代表维护的区间，l、v代表查询/更新的区间。一般用[lv, mid], [mid + 1, rv]代表左右节点
+l、v值在于限定节点，而节点更新只与lv，rv，lz有关，与l、v无关。
+时间复杂度证明可以考虑只有两侧的节点需要不断的递归，中间的树的分支都不需要再次更新。
+*/
 
-// 动态开点
-struct node {
-    ll l, r, v = 0, vv = 0, lz = 0, llz = 0, is_c = 0;
+const int maxn = 8e5;
+int cnt = 1;
+
+struct Node {
+    // 考虑到赋值
+    ll v = 0, l, r, lz = 0, is_c = 0;
+    // max/min，初始值只能为0，max，min可能被未初始化的值
+    // 因为有push_down，不用担心在push_up时虚拟节点的值影响min
+    ll vv = 0, llz = 0;
 }tree[4 * maxn];
 
-void create_node(int cur) {
-    if (tree[cur].is_c) return;
-    tree[cur].is_c = 1;
-    tree[cur].l = cnt++;
-    tree[cur].r = cnt++;
+// tree[0].l = 1, tree[0].r = 2
+void create(ll cur) {
+    if (!tree[cur].is_c) {
+        tree[cur].l = cnt++;
+        tree[cur].r = cnt++;
+        tree[cur].is_c = 1;
+    }
 }
 
-void push_up(int cur) {
-    tree[cur].v = tree[tree[cur].l].v + tree[tree[cur].r].v;
-    tree[cur].vv = max(tree[tree[cur].l].vv, tree[tree[cur].r].vv);
+// 依次更新上层节点的值
+// 可以改写成区间最值
+void push_up(ll cur) {
+    int lnode = tree[cur].l, rnode = tree[cur].r;
+    // 未更新的节点可以不更新 针对max与min
+    tree[cur].v = tree[lnode].v + tree[rnode].v;
 }
 
-// lazy_tag
-void push_down(int cur, int lv, int rv) {
+// 懒更新 
+// 有区间赋值，区间加减两种。 
+void push_down(ll cur, ll lv, ll rv) {
+    // 还原区间
     int mid = (lv + rv) / 2;
-    int ln = tree[cur].l, rn = tree[cur].r;
-    tree[ln].lz += tree[cur].lz;
-    tree[ln].v += tree[cur].lz * (mid - lv + 1);
-    tree[rn].lz += tree[cur].lz;
-    tree[rn].v += tree[cur].lz * (rv - mid);
+    int lnode = tree[cur].l, rnode = tree[cur].r;
+    // 注意这里还未创建的节点也需要更新
+    tree[lnode].lz += tree[cur].lz;
+    tree[lnode].v += tree[cur].lz * (mid - lv + 1);  
+    tree[rnode].lz += tree[cur].lz;
+    tree[rnode].v += tree[cur].lz * (rv - mid);
     tree[cur].lz = 0;
-    tree[ln].llz += tree[cur].llz;
-    tree[ln].vv += tree[cur].llz;
-    tree[rn].llz += tree[cur].llz;
-    tree[rn].vv += tree[cur].llz;
-    tree[cur].llz = 0;
 }
 
-void update(int cur, int lv, int rv, int l, int r, ll v) {
-    create_node(cur);
+// 区间更新，同时用于初始化。
+void update(ll cur, ll lv, ll rv, ll l, ll r, ll v) {
+    create(cur);
+    // 当前节点被包含，打标记而不更新子节点。
     if (l <= lv && rv <= r) {
         tree[cur].v += v * (rv - lv + 1);
         tree[cur].lz += v;
-        tree[cur].vv += v;
-        tree[cur].llz += v;
         return;
     }
+    // 未被包含，则只需要部分节点，因此要push_down与push_up左/右侧节点
     push_down(cur, lv, rv);
-    int mid = (lv + rv) / 2;
-    if (l <= mid) {
-        update(tree[cur].l, lv, mid, l, r, v);
-    }
-    if (mid < r) {
-        update(tree[cur].r, mid + 1, rv, l, r, v);
-    }
+    int mid = (lv + rv) / 2, lnode = tree[cur].l, rnode = tree[cur].r;
+    
+    // 只剩下两侧的节点，一定有lv <= l 以及 rv >= r, 因此分别只需要l、r在区间之内就好。
+    // 注意区间有交集的判定，基于限制条件才好判断，否则需要考虑一前一后两种相交和包含三种情况。 
+    if (l <= mid)
+        update(lnode, lv, mid, l, r, v);
+    if (r >= mid + 1)
+        update(rnode, mid + 1, rv, l, r, v);
+    
+    // 此时值已经更新，可以push_up
     push_up(cur);
 }
 
-ll query(int cur, int lv, int rv, int l, int r) { 
-    create_node(cur);
+// 获取区间值
+ll query(int cur, int lv, int rv, int l, int r) {
+    // 查询与更新类似，需要的时候更新节点
+    create(cur);
     if (l <= lv && rv <= r) {
         return tree[cur].v;
-    } 
+    }
+    // 这一步确保子节点的值没有问题
     push_down(cur, lv, rv);
-    int mid = (lv + rv) / 2;
-    ll v1 = -1, v2 = -1;
-    if (r <= mid) {
-        v1 = query(tree[cur].l, lv, mid, l, r);
-        return v1;
+    int mid = (lv + rv) / 2, lnode = tree[cur].l, rnode = tree[cur].r;
+    ll ans = 0;
+    // 同理，两侧需要查询
+    if (l <= mid) {
+        ans += query(lnode, lv, mid, l, r);
     }
-    else if (l > mid) {
-        v2 = query(tree[cur].r, mid + 1, rv, l, r);
-        return v2;
+    if (r >= mid + 1) {
+        ans += query(rnode, mid + 1, rv, l, r);
     }
-    v1 = query(tree[cur].l, lv, mid, l, r);
-    v2 = query(tree[cur].r, mid + 1, rv, l, r);
-    return v1 + v2;
+    return ans;
 }
-
-ll qquery(int cur, int lv, int rv, int l, int r) { 
-    create_node(cur);
-    if (l <= lv && rv <= r) {
-        return tree[cur].vv;
+// 示例
+int main() {
+    int n = 10;
+    // 初始化
+    cnt = 1;
+    for (int i = 0; i < 4 * n; i++) {
+        tree[i].is_c = 0, tree[i].lz = 0, tree[i].v = 0;
     }
-    push_down(cur, lv, rv);
-    int mid = (lv + rv) / 2;
-    ll v1 = -1, v2 = -1;
-    if (r <= mid) {
-        v1 = qquery(tree[cur].l, lv, mid, l, r);
-        return v1;
-    }
-    else if (l > mid) {
-        v2 = qquery(tree[cur].r, mid + 1, rv, l, r);
-        return v2;
-    }
-    v1 = qquery(tree[cur].l, lv, mid, l, r);
-    v2 = qquery(tree[cur].r, mid + 1, rv, l, r);
-    return max(v1, v2);
+    // 区间更新
+    update(0, 0, n - 1, 1, 3, 1);
+    update(0, 0, n - 1, 2, 4, 1);
+    // 区间查询
+    cout << query(0, 0, n - 1, 4, 4) << endl;
+    // for (int i = 0; i < n; i++) 
 }
 ```
 
@@ -2454,7 +2502,13 @@ priority_queue<arr, vector<arr>, greater<arr>> pq;
 
 // 合并集合
 pre[next].insert(pre[course].begin(),pre[course].end());
-                
+
+// function 
+#include <functional>
+// 省去全局变量
+function<void(int, int)> dfs = [&](int cur, int pre) {
+    cout << 1 << endl;
+};
 ```
 
 ### 逻辑
