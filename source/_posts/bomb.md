@@ -17,6 +17,9 @@ objdump -d可将二进制文件转换为汇编代码（反汇编）
 ### 基本流程
 
 ```bash
+# 确保debug with source code
+gcc -g -ggdb csim.c -o csim.out
+
 # 进入汇编调试
 layout asm
 # refresh
