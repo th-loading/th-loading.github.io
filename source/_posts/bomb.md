@@ -21,9 +21,15 @@ objdump -d可将二进制文件转换为汇编代码（反汇编）
 gcc -g -ggdb csim.c -o csim.out
 
 # 进入汇编调试
+# layout split 可以同时看到源代码和汇编代码
 layout asm
 # refresh
 ref
+
+# 从第一个指令开始debug
+# Entry point
+starti
+
 # 下断点进行debug(break *main也可以)
 break *assmbly_address
 next step # 相对source code next跳过function
@@ -58,6 +64,63 @@ set *0x20001234 = 0xABABABAB
 %r/edi r/esi r/edx r/ecx 4对应第四个-第一个参数
 %r/ebp 栈尾 %r/esp 栈顶部
 
+### 调用函数
+
+```c
+# 如果需要用到栈
+	# 存ebp
+	pushl %ebp
+	# 新的ebp
+	movl %esp, %ebp
+    
+	movl %ebp,%esp
+	popl %ebp b  
+
+# 注意隐含的PC
+# parameter 
+# PC
+# EBP'
+```
+
+```assembly
+# call Main，函数运行的第一个指令实际并不是Main，而是Entry point，gdb starti / info file可以得知。
+# libc initializations, heap allocation, 由编译器确定
+# y86也存在一个INIT函数
+	movl Stack, %esp
+	call Main
+	halt
+
+Main: 
+	# pushl后指针指向的是栈顶元素，而不是空元素。因此不能直接mov到esp。
+	
+	# 如果函数需要用到栈时
+	# 存ebp
+	pushl %ebp
+	# 新的ebp
+	movl %esp, %ebp
+	
+	# 传参可以借助edi，也可以借助栈。
+	call Add 
+	
+
+	movl %ebp,%esp
+	popl %ebp
+	
+	# ebp存储的是PC的值
+	ret
+Add:
+	pushl %ebp
+	movl %esp, %ebp
+	
+	# ！Call函数和ret函数隐含有push，pop PC，且在函数开始时一般都要push ebp，保存被调用者的栈起始指针，因此从在64bit系统中，8(ebp) 代表传的第一个参数。
+	movl 8(%ebp),%ecx
+	
+	movl %ebp,%esp
+	popl %ebp
+	
+
+```
+
 ### 汇编指令
 
 主要基于x86指令集架构，也可以不分析，小数据可以借助gdb调试判断。
@@ -75,8 +138,12 @@ JG # greater
 # 赋值
 movzbl # zero extend byte to long 0 拓展
 # AT&T in this syntax, the source comes first and the destination second. 
-# 括号代表访存
+# 括号代表访存 多用于取地址操作，当MOV为将对应内存地址的数值赋值时，该操作数表示只计算地址。
 lea 0x50(%rsp), %rsi # 只计算具体的地址
+# 常用于存储指针。
+
+# 按位异或，相同等价于清零
+xorl    %eax, %eax
 ```
 
 ### 数据结构
