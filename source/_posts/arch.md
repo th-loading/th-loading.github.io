@@ -9,7 +9,7 @@ tags: CS
 
 # 前置知识
 
-### Y86
+## Y86
 
 esp - rsp 第三版CSAPP全部使用8Byte
 
@@ -23,11 +23,48 @@ Y86的汇编指令使用内存虚拟地址，由硬件和操作系统在读入�
 
 addl, subl, andl, and xorl 对应 ZF, SF, and OF (zero, sign, and overflow)
 
-### HCL
+## HCL
 
 硬件控制语言，从逻辑电路图到硬件描述语言，Verilog 根据描述生成电路，high-level Language。Single  Bit，高电平表示1，反之表示0，与或非门。基本的对象时逻辑电路，bool eq = (a && b) || (!a && !b) ，持续响应输入的变化。
 
 出于简单，每个字集都视为int，有 bool Eq = (A == B)。
+
+### 硬件基础
+
+组合电路，不需要时序信息，参考三极管等原件的特性，输入改变自然输出改变。若要生成有顺序的时序电路，需要引入时钟。
+
+时钟寄存器（区分机器级编程提到的寄存器文件），只有在时钟上升沿才会改变自身的输出，就可以确保数据之间读取改变的先后顺序。
+
+随机访问存储器（内存+寄存器文件）；在读取时等价于组合电路，只需要输入改变（寻址改变）输出随之改变（对应寄存器的值）； 在写入时则不同，由一个时钟控制。因此只读存储器，如指令存储器可以看作组合电路。
+
+<img src="/images/cpu.png" alt="流程" style="zoom:50%;"  />
+
+6类操作
+
+1. Fetch icode(指令代码) + ifun(指令功能 指导ALU) + (rA rB reg) + valp(顺序计算Increment)
+2. Decode 等价组合逻辑电路 读出ALU A ALU B  
+3. Execute ALU运算(参考ifun)，设置条件码（condition code register (CC)），ifun给出传送条件
+4. Memory 写/读 valM
+5. Write Back 写回存储器
+6. 更新PC
+
+单个周期内，Y86-64的指令集不会读出现过写的状态。在时钟下，Input PC改变，当组合电路稳定之后，因为只取决于上一阶段的值，可以确保同时进行。(写操作需要另外的时钟，这里简化讨论)
+
+<img src="/images/cycle.png" alt="Cycle" style="zoom:50%;"  />
+
+具体而言：
+
+对条件转移，不会有运算设置完条件码后，直接读取条件码。只有运算后，才另外判断jmp。
+
+对pushq而言，并不能rsp-8后直接M(rsp)，而应该使用rsp-8得到的valE，直接M(valE)（同时写入rsp)。
+
+### SEQ阶段
+
+使用流水线操作，借助时钟使得上个Stage结束的同时，下个Stage正好开始即可（选择每个Stage最长的时间，就可以只用一个统一的时钟）
+
+<img src="/images/pipe.png" alt="PIPE" style="zoom:50%;"  />
+
+
 
 # 具体流程
 
@@ -322,5 +359,144 @@ Changes to memory:
 0x0030: 0x0000000000000111      0x000000000000000a
 0x0038: 0x0000000000000222      0x00000000000000b0
 0x0040: 0x0000000000000333      0x0000000000000c00
+```
+
+## Part B
+
+只需要在固定的结构中加入操作码即可。
+
+```
+################ Fetch Stage     ###################################
+
+# Determine instruction code
+word icode = [
+	imem_error: INOP;
+	1: imem_icode;		# Default: get from instruction memory
+];
+
+# Determine instruction function
+word ifun = [
+	imem_error: FNONE;
+	1: imem_ifun;		# Default: get from instruction memory
+];
+
+bool instr_valid = icode in 
+	{ INOP, IHALT, IRRMOVQ, IIRMOVQ, IRMMOVQ, IMRMOVQ,
+	       IOPQ, IJXX, ICALL, IRET, IPUSHQ, IPOPQ, IIADDQ};
+
+# Does fetched instruction require a regid byte?
+bool need_regids =
+	icode in { IRRMOVQ, IOPQ, IPUSHQ, IPOPQ, 
+		     IIRMOVQ, IRMMOVQ, IMRMOVQ, IIADDQ};
+
+# Does fetched instruction require a constant word?
+bool need_valC =
+	icode in { IIRMOVQ, IRMMOVQ, IMRMOVQ, IJXX, ICALL, IIADDQ};
+
+################ Decode Stage    ###################################
+
+## What register should be used as the A source?
+word srcA = [
+	icode in { IRRMOVQ, IRMMOVQ, IOPQ, IPUSHQ  } : rA;
+	icode in { IPOPQ, IRET } : RRSP;
+	1 : RNONE; # Don't need register
+];
+
+## What register should be used as the B source?
+word srcB = [
+	icode in { IOPQ, IRMMOVQ, IMRMOVQ, IIADDQ} : rB;
+	icode in { IPUSHQ, IPOPQ, ICALL, IRET } : RRSP;
+	1 : RNONE;  # Don't need register
+];
+
+## What register should be used as the E destination?
+word dstE = [
+	icode in { IRRMOVQ } && Cnd : rB;
+	icode in { IIRMOVQ, IOPQ, IIADDQ} : rB;
+	icode in { IPUSHQ, IPOPQ, ICALL, IRET } : RRSP;
+	1 : RNONE;  # Don't write any register
+];
+
+## What register should be used as the M destination?
+word dstM = [
+	icode in { IMRMOVQ, IPOPQ } : rA;
+	1 : RNONE;  # Don't write any register
+];
+
+################ Execute Stage   ###################################
+
+## Select input A to ALU
+word aluA = [
+	icode in { IRRMOVQ, IOPQ } : valA;
+	icode in { IIRMOVQ, IRMMOVQ, IMRMOVQ, IIADDQ } : valC;
+	icode in { ICALL, IPUSHQ } : -8;
+	icode in { IRET, IPOPQ } : 8;
+	# Other instructions don't need ALU
+];
+
+## Select input B to ALU
+word aluB = [
+	icode in { IRMMOVQ, IMRMOVQ, IOPQ, ICALL, 
+		      IPUSHQ, IRET, IPOPQ, IIADDQ} : valB;
+	icode in { IRRMOVQ, IIRMOVQ } : 0;
+	# Other instructions don't need ALU
+];
+
+## Set the ALU function
+word alufun = [
+	icode == IOPQ : ifun;
+	1 : ALUADD;
+];
+
+## Should the condition codes be updated?
+bool set_cc = icode in { IOPQ, IIADDQ};
+
+################ Memory Stage    ###################################
+
+## Set read control signal
+bool mem_read = icode in { IMRMOVQ, IPOPQ, IRET };
+
+## Set write control signal
+bool mem_write = icode in { IRMMOVQ, IPUSHQ, ICALL };
+
+## Select memory address
+word mem_addr = [
+	icode in { IRMMOVQ, IPUSHQ, ICALL, IMRMOVQ } : valE;
+	icode in { IPOPQ, IRET } : valA;
+	# Other instructions don't need address
+];
+
+## Select memory input data
+word mem_data = [
+	# Value from register
+	icode in { IRMMOVQ, IPUSHQ } : valA;
+	# Return PC
+	icode == ICALL : valP;
+	# Default: Don't write anything
+];
+
+## Determine instruction status
+word Stat = [
+	imem_error || dmem_error : SADR;
+	!instr_valid: SINS;
+	icode == IHALT : SHLT;
+	1 : SAOK;
+];
+
+################ Program Counter Update ############################
+
+## What address should instruction be fetched at
+
+word new_pc = [
+	# Call.  Use instruction constant
+	icode == ICALL : valC;
+	# Taken branch.  Use instruction constant
+	icode == IJXX && Cnd : valC;
+	# Completion of RET instruction.  Use value from stack
+	icode == IRET : valM;
+	# Default: Use incremented PC
+	1 : valP;
+];
+#/* $end seq-all-hcl */
 ```
 
