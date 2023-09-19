@@ -1,0 +1,564 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/images/icon.png">
+  <link rel="icon" href="/images/icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="th-loading">
+  <meta name="keywords" content="">
+  <meta name="description" content="前置知识 多级缓存 本质是基于代码运行时的时间局部性与空间局部性，往往顺序取指令，顺序访问内存中的元素，一段时间内选择的内存区域也往往相同。 具体流程 Part A  在c语言的文件中模拟出以上结构的二级缓存。该实验只模拟数据Cache，因此忽视I开头的请求，只需要考虑L load，读取数据；S store 存储数据；M modify load 后 store。-v不必要但有助于debug 提取参">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CS:APP Cache Lab记录">
+<meta property="og:url" content="http://example.com/2023/06/27/cache/index.html">
+<meta property="og:site_name" content="loading">
+<meta property="og:description" content="前置知识 多级缓存 本质是基于代码运行时的时间局部性与空间局部性，往往顺序取指令，顺序访问内存中的元素，一段时间内选择的内存区域也往往相同。 具体流程 Part A  在c语言的文件中模拟出以上结构的二级缓存。该实验只模拟数据Cache，因此忽视I开头的请求，只需要考虑L load，读取数据；S store 存储数据；M modify load 后 store。-v不必要但有助于debug 提取参">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/cache-1.png">
+<meta property="article:published_time" content="2023-06-27T06:58:08.000Z">
+<meta property="article:modified_time" content="2023-09-19T12:04:21.712Z">
+<meta property="article:author" content="th-loading">
+<meta property="article:tag" content="CS">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/images/cache-1.png">
+  
+  <title>CS:APP Cache Lab记录 - loading</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":false,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>loading</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/images/tb.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="CS:APP Cache Lab记录">
+              
+                CS:APP Cache Lab记录
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2023-06-27 14:58" pubdate>
+        2023年6月27日 下午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      8.9k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      28 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">CS:APP Cache Lab记录</h1>
+            
+            <div class="markdown-body">
+              <h1 id="前置知识">前置知识</h1>
+<h2 id="多级缓存">多级缓存</h2>
+<p>本质是基于代码运行时的时间局部性与空间局部性，往往顺序取指令，顺序访问内存中的元素，一段时间内选择的内存区域也往往相同。</p>
+<h1 id="具体流程">具体流程</h1>
+<h2 id="part-a">Part A</h2>
+<p><img src="/images/cache-1.png" srcset="/img/loading.gif" lazyload alt="cache结构" style="zoom:50%;"/></p>
+<p>在c语言的文件中模拟出以上结构的二级缓存。该实验只模拟数据Cache，因此忽视I开头的请求，只需要考虑L
+load，读取数据；S store 存储数据；M modify load 后
+store。-v不必要但有助于debug</p>
+<h3 id="提取参数">提取参数</h3>
+<p>需要有两个可选择的功能，四个必要的参数。若缺少参数时需要打印Usage、option，只要含有-h
+只打印帮助。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// Get_opt API 处理不同参数的情况</span><br><span class="hljs-comment">// 注意if处理的先后对命令行的影响</span><br><span class="hljs-comment">// 比如在最后加入一个多余的参数，尽管其他条件都符合 都不会执行</span><br><br><span class="hljs-comment">//	if there exists -h</span><br>	<span class="hljs-comment">// &quot;Usage&quot; </span><br>	<span class="hljs-comment">// return 0 </span><br><br><span class="hljs-comment">//	if there dosen&#x27;t exist four valid mandatory parameters </span><br><span class="hljs-comment">// 	? 缺少定义 重复定义 出现不合规的定义 -&gt; 借助Get_opt处理  </span><br>	<span class="hljs-comment">// &quot;./csim: Missing required command line argument&quot;</span><br>	<span class="hljs-comment">// &quot;Usage&quot;</span><br>	<span class="hljs-comment">// return 0  </span><br><br><span class="hljs-comment">//  if there exist invalid option</span><br><span class="hljs-comment">//	存在多余的参数</span><br>	<span class="hljs-comment">// &quot;./csim: invalid option -- &#x27;f&#x27;&quot; (order of apperance in command line)</span><br>	<span class="hljs-comment">// &quot;Usage&quot; </span><br>	<span class="hljs-comment">// return 0	</span><br><br><span class="hljs-comment">//	if file not found</span><br>	<span class="hljs-comment">// &quot;traces/yi.trac: No such file or directory&quot;</span><br>	<span class="hljs-comment">// return 0</span><br></code></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// c函数中处理输入的参数</span><br><br><span class="hljs-comment">// argc 参数的多少 至少非负</span><br><br><span class="hljs-comment">// 可以是**argv *argv[] 字符串数组</span><br><span class="hljs-comment">// ./main a b c</span><br><span class="hljs-comment">// argv[0] = ./main (相当于对命令行做拆分)</span><br><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;unistd.h&gt;</span> </span><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">(<span class="hljs-type">int</span> argc, <span class="hljs-type">char</span> *argv[])</span> &#123;<br>	<span class="hljs-comment">// getopt(int argc, char *const argv[], const char *optstring)</span><br>    <span class="hljs-comment">// : required argument :: optional</span><br>    <span class="hljs-comment">// 默认会进行排序，使得需要的参数在前面</span><br>    <span class="hljs-type">int</span> arg, verbose = <span class="hljs-number">0</span>;<br>    <span class="hljs-type">int</span> S, s = <span class="hljs-number">-1</span>, E = <span class="hljs-number">-1</span>, B, b = <span class="hljs-number">-1</span>;<br>    <span class="hljs-type">char</span> *path = <span class="hljs-literal">NULL</span>;<br>    FILE *fp;<br>    <span class="hljs-comment">// C 打开文件并处理输入k</span><br>    <span class="hljs-comment">// crefsim 没有做边界保护 &quot;-1&quot; 就会死循环</span><br>    <span class="hljs-comment">// getopt 并不会强制判断哪些参数一定要存在    </span><br>    <span class="hljs-keyword">while</span> ((arg = getopt(argc, argv, <span class="hljs-string">&quot;:hvs:E:b:t:&quot;</span>)) != <span class="hljs-number">-1</span>) &#123;<br>        <span class="hljs-keyword">switch</span> (arg) &#123;<br>            <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;h&#x27;</span>:<br>                outputUsage();                <br>                <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;v&#x27;</span>:<br>                verbose = <span class="hljs-number">1</span>;<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;s&#x27;</span>:<br>                s = atoi(optarg);<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;E&#x27;</span>:<br>                E = atoi(optarg);<br>                <span class="hljs-keyword">break</span>; <br>            <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;b&#x27;</span>:<br>                b = atoi(optarg);<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;t&#x27;</span>:<br>                <span class="hljs-comment">// printf(&quot;%d\n&quot;, optind);</span><br>                path = argv[optind - <span class="hljs-number">1</span>];<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;:&#x27;</span>:<br>                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%s: Missing required command line argument\n&quot;</span>, argv[<span class="hljs-number">0</span>]);<br>                outputUsage();<br>                <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>                <span class="hljs-keyword">break</span>;<br>            <span class="hljs-keyword">default</span>:<br>                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%s: invalid option -- &#x27;%c&#x27;\n&quot;</span>, argv[<span class="hljs-number">0</span>], optopt);<br>                outputUsage();<br>                <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>                <span class="hljs-keyword">break</span>;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">if</span> (s &lt;= <span class="hljs-number">0</span> || E &lt;= <span class="hljs-number">0</span> || b &lt;= <span class="hljs-number">0</span> || path == <span class="hljs-literal">NULL</span>) &#123;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%s: Missing required command line argument\n&quot;</span>, argv[<span class="hljs-number">0</span>]);<br>        outputUsage();<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    &#125;<br>    fp = fopen(path, <span class="hljs-string">&quot;r&quot;</span>);<br>    <span class="hljs-keyword">if</span> (!fp) &#123;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%s: No such file or directory\n&quot;</span>, path); <br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    &#125;<br>    solve(s, E, b, fp, verbose);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="lru实现">LRU实现</h3>
+<p>记录每组的最后遍历时间，O(n^2)，冗余的堆可以降低时间复杂度到
+O(nlogn)，
+到达的一定在最右侧，替换的在最左侧，冗余的队列也可以将时间复杂度降低到O(n)，到空间复杂度也是O(n)。</p>
+<p>也可以利用哈希表直接定位，然后借助双端队列达到O(n)，可以保证空间严格在O(capacity)。</p>
+<p>这里C直接使用基本的数据结构（没有哈希表）</p>
+<p>注意用unsigned int， 参数过多...</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> <span class="hljs-title function_">checkHit</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> **data, <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> **rec, <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  cnt, <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  E, <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  sid, <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  caddr)</span> &#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  i = <span class="hljs-number">0</span>; i &lt; E; i++) &#123;<br>        <span class="hljs-keyword">if</span> (data[sid][i] == caddr) &#123;<br>            rec[sid][i] = cnt;<br>            <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br><br><span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  <span class="hljs-title function_">checkEvict</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> **rec, <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> **data, <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  E, <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  cnt, <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  sid, <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  caddr)</span> &#123;<br>     <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  csign = <span class="hljs-number">0</span>;<br>     <span class="hljs-keyword">for</span> (<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  i = <span class="hljs-number">0</span>; i &lt; E; i++) &#123;<br>         <span class="hljs-keyword">if</span> (rec[sid][i] == <span class="hljs-number">0</span>) &#123;<br>             csign = <span class="hljs-number">1</span>;<br>             rec[sid][i] = cnt;<br>             data[sid][i] = caddr;<br>             <span class="hljs-keyword">break</span>;<br>         &#125;<br>     &#125; <br>     <span class="hljs-keyword">if</span> (!csign) &#123;<br>         <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  cv = rec[sid][<span class="hljs-number">0</span>], cid = <span class="hljs-number">0</span>;<br>         <span class="hljs-keyword">for</span> (<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  i = <span class="hljs-number">1</span>; i &lt; E; i++) &#123;<br>             <span class="hljs-keyword">if</span> (rec[sid][i] &lt; cv) &#123;<br>                 cv = rec[sid][i];<br>                 cid = i;<br>             &#125;<br>         &#125;<br>         data[sid][cid] = caddr;<br>         rec[sid][cid] = cnt;<br>         <span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;<br>     &#125;<br>     <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<p>主体的solve函数，注意代码命名的规范。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">solve</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  s, <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  E, <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  b, FILE *fp, <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  verbose)</span> &#123;<br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  S = <span class="hljs-number">1</span> &lt;&lt; s;<br>    <span class="hljs-type">char</span> type;<br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  addr, sz; <br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  hits = <span class="hljs-number">0</span>, misses = <span class="hljs-number">0</span>, evictions = <span class="hljs-number">0</span>;<br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  cnt = <span class="hljs-number">1</span>;<br><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  **rec = (<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> **)<span class="hljs-built_in">malloc</span>(<span class="hljs-keyword">sizeof</span>(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> *)*S);<br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  **data = (<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> **)<span class="hljs-built_in">malloc</span>(<span class="hljs-keyword">sizeof</span>(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> *)*S);<br><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  i = <span class="hljs-number">0</span>; i &lt; S; i++) &#123;<br>        rec[i] = (<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> *)<span class="hljs-built_in">malloc</span>(<span class="hljs-keyword">sizeof</span>(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> )*E);<br>        data[i] = (<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> *)<span class="hljs-built_in">malloc</span>(<span class="hljs-keyword">sizeof</span>(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> )*E);<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  j = <span class="hljs-number">0</span>; j &lt; E; j++) &#123;<br>            rec[i][j] = <span class="hljs-number">0</span>;<br>            data[i][j] = <span class="hljs-number">-1</span>;<br>        &#125;<br>    &#125; <br><br>    <span class="hljs-keyword">while</span> (<span class="hljs-built_in">fscanf</span>(fp, <span class="hljs-string">&quot; %c %x,%d&quot;</span>, &amp;type, &amp;addr, &amp;sz) != EOF) &#123;<br>        <span class="hljs-keyword">if</span> (verbose == <span class="hljs-number">1</span>) print <span class="hljs-title function_">f</span><span class="hljs-params">(<span class="hljs-string">&quot;%c %x,%d \n&quot;</span>, type, addr, sz)</span>;<br>        <span class="hljs-keyword">if</span> (type == <span class="hljs-string">&#x27;I&#x27;</span>) <span class="hljs-keyword">continue</span>;<br>        <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  sid = (addr &gt;&gt; b) % S, caddr = addr &gt;&gt; b;<br>        <span class="hljs-comment">// if (verbose == 1) prunsigned int f(&quot;%c %x,%d %d %d &quot;, type, addr, sz, sid, caddr);</span><br>        <span class="hljs-keyword">if</span> (type == <span class="hljs-string">&#x27;L&#x27;</span> || type == <span class="hljs-string">&#x27;S&#x27;</span>) &#123;<br>            <span class="hljs-keyword">if</span> (checkHit(data, rec, cnt, E, sid, caddr)) &#123;<br>                hits++;<br>                <span class="hljs-keyword">if</span> (verbose == <span class="hljs-number">1</span>) print <span class="hljs-title function_">f</span><span class="hljs-params">(<span class="hljs-string">&quot;hit &quot;</span>)</span>;<br>            &#125;<br>            <span class="hljs-keyword">else</span> &#123;<br>                misses++;<br>                <span class="hljs-keyword">if</span> (verbose == <span class="hljs-number">1</span>) print <span class="hljs-title function_">f</span><span class="hljs-params">(<span class="hljs-string">&quot;miss &quot;</span>)</span>;<br>                <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  prev = evictions;<br>                evictions += checkEvict(rec, data, E, cnt, sid, caddr);<br>                <span class="hljs-keyword">if</span> (prev &lt; evictions) &#123;<br>                    <span class="hljs-keyword">if</span> (verbose == <span class="hljs-number">1</span>) pint <span class="hljs-title function_">f</span><span class="hljs-params">(<span class="hljs-string">&quot;eviction&quot;</span>)</span>;<br>                &#125;<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">if</span> (type == <span class="hljs-string">&#x27;M&#x27;</span>) &#123; <br>            hits++;<br>            <span class="hljs-keyword">if</span> (checkHit(data, rec, cnt, E, sid, caddr)) &#123;<br>                hits++;<br>                print <span class="hljs-title function_">f</span><span class="hljs-params">(<span class="hljs-string">&quot;hit hit&quot;</span>)</span>;<br>            &#125;<br>            <span class="hljs-keyword">else</span> &#123;<br>                misses++;<br>                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;miss &quot;</span>);<br>                <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span>  prev = evictions;<br>                evictions += checkEvict(rec, data, E, cnt, sid, caddr);<br>                <span class="hljs-keyword">if</span> (evictions &gt; prev) &#123;<br>                    <span class="hljs-keyword">if</span> (verbose == <span class="hljs-number">1</span>) <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;eviction &quot;</span>);<br>                &#125;<br>                <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;hit&quot;</span>);<br>            &#125;<br>        &#125;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\n&quot;</span>);<br>        cnt++;<br>    &#125;<br>    <br>    printSummary(hits, misses, evictions);<br><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; E; i++) &#123;<br>        <span class="hljs-built_in">free</span>(rec[i]);<br>        <span class="hljs-built_in">free</span>(data[i]);<br>    &#125;<br>    <span class="hljs-built_in">free</span>(rec);<br>    <span class="hljs-built_in">free</span>(data);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>注意make函数-std=c99会报错，且printSummary 不需要重复定义。</p>
+<h2 id="part-b">Part B</h2>
+<p>32个组，里面包含8个INT。</p>
+<h3 id="try1">try1</h3>
+<p>首先尝试分块，不能假定数组每一块所处的Cache，但相邻块位于不同的Cache。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">char</span> transpose_submit_desc[] = <span class="hljs-string">&quot;Transpose submission&quot;</span>;<br><span class="hljs-type">void</span> <span class="hljs-title function_">transpose_submit</span><span class="hljs-params">(<span class="hljs-type">int</span> M, <span class="hljs-type">int</span> N, <span class="hljs-type">int</span> A[N][M], <span class="hljs-type">int</span> B[M][N])</span> &#123;<br>    <span class="hljs-type">int</span> G = <span class="hljs-number">8</span>;<br>    <span class="hljs-keyword">if</span> (M == <span class="hljs-number">64</span>) G = <span class="hljs-number">4</span>;<br>    <span class="hljs-type">int</span> tr = (M + G - <span class="hljs-number">1</span>) / G, tc = (N + G - <span class="hljs-number">1</span>) / G;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; tr; i++) &#123;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> j = <span class="hljs-number">0</span>; j &lt; tc; j++) &#123;<br>            <span class="hljs-type">int</span> sl = i * G, el = min(M - <span class="hljs-number">1</span>, (i + <span class="hljs-number">1</span>) * G - <span class="hljs-number">1</span>);<br>            <span class="hljs-type">int</span> sr = j * G, er = min(N - <span class="hljs-number">1</span>, (j + <span class="hljs-number">1</span>) * G - <span class="hljs-number">1</span>);<br>            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> k = sr; k &lt;= er; k++) &#123;<br>                <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> l = sl; l &lt;= el; l++) &#123;<br>                    B[l][k] = A[k][l];<br>                &#125;<br>            &#125;<br>        &#125;<br>    &#125;          <br>&#125;<br></code></pre></td></tr></table></figure>
+<p>结果</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">Cache</span> Lab summary:<br>                        <span class="hljs-attribute">Points</span>   Max pts      Misses<br><span class="hljs-attribute">Csim</span> correctness          <span class="hljs-number">27</span>.<span class="hljs-number">0</span>        <span class="hljs-number">27</span><br><span class="hljs-attribute">Trans</span> perf <span class="hljs-number">32</span>x32           <span class="hljs-number">6</span>.<span class="hljs-number">9</span>         <span class="hljs-number">8</span>         <span class="hljs-number">343</span><br><span class="hljs-attribute">Trans</span> perf <span class="hljs-number">64</span>x64           <span class="hljs-number">1</span>.<span class="hljs-number">8</span>         <span class="hljs-number">8</span>        <span class="hljs-number">1843</span><br><span class="hljs-attribute">Trans</span> perf <span class="hljs-number">61</span>x67          <span class="hljs-number">10</span>.<span class="hljs-number">0</span>        <span class="hljs-number">10</span>        <span class="hljs-number">1913</span><br>          <span class="hljs-attribute">Total</span> points    <span class="hljs-number">45</span>.<span class="hljs-number">7</span>        <span class="hljs-number">53</span><br></code></pre></td></tr></table></figure>
+<p>可以分开考虑，分开优化。可以看到具体的hit / miss。</p>
+<p>？理论 8 * 8 块中一定会有6次Hit，考虑B的第一行 MISS MISS HIT ...
+，B的第二行 MISS MISS MISS HIT ...， B的第三行 MISS HIT MISS MISS HIT
+HIT ...
+至多三个MISS，第一次没有遍历过，第二次被A占用，写入后可能仍被A占用，第三次重新占用A。因此对于B最坏的情况
+8 * 8 中 MISS 3 * 8，而对于A而言 MISS ... 被B占用 MISS ... !!! 前提是A
+B的每一列属于不同的CACHE，若满足以上情况，则MISS数为 16 * 5 * 8 = 640
+343 倒也合理，若64 * 64也满足则会降低到 640 * 4 = 2560 (MAX)</p>
+<figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs tap">64 *<span class="hljs-number"> 64 </span><br>8个INT，4 *<span class="hljs-number"> 8 </span>=<span class="hljs-number"> 32 </span>第五行与第一行位于同一个Cache<br>所以这里不能使用<span class="hljs-number"> 8 </span>*<span class="hljs-number"> 8 </span>的块，可以使用<span class="hljs-number"> 4 </span>*<span class="hljs-number"> 4 </span>的块<br>  <span class="hljs-number"> 5 </span>L 10d080,4 miss eviction<br>  <span class="hljs-number"> 6 </span>S 14d080,4 miss eviction<br>   <br>从同一个Cache开始<br>10d080<br>14d080<br></code></pre></td></tr></table></figure>
+<h3 id="try2">try2</h3>
+<p>！平均每一块允许MISS的次数 1.17 32 * 32，1.27 64 *
+64，因此被占用的次数只能是常数级别，8 * 8 的块可以 Miss 2次</p>
+<ul>
+<li><p>思路一：改变分块的形状或不分块？
+若要复用读入A中的元素，一定会导致读入B中的多块，而若要复用B中的多块，又需要读入A中的多块。</p></li>
+<li><p>思路二：在 8 * 8 或 4 * 4 的内部块进行赋值的优化</p>
+<p>把处于相同Cache的赋值放到最后，借助临时的变量传递。计算出当前列与当前Cache占用相同块的行号。映射出Cache号。参数较多都可以优化到小于12个，这里便于表示。</p></li>
+<li><p>思路三：牺牲时间复杂度</p>
+<p>一定需要读入8 * 8 的分块，意义不大。</p></li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">char</span> transpose_submit_desc[] = <span class="hljs-string">&quot;Transpose submission&quot;</span>;<br><span class="hljs-type">void</span> <span class="hljs-title function_">transpose_submit</span><span class="hljs-params">(<span class="hljs-type">int</span> M, <span class="hljs-type">int</span> N, <span class="hljs-type">int</span> A[N][M], <span class="hljs-type">int</span> B[M][N])</span> &#123;<br>    <span class="hljs-type">int</span> dx = <span class="hljs-number">8</span>, dy = <span class="hljs-number">8</span>;<br>    <span class="hljs-keyword">if</span> (M == <span class="hljs-number">64</span>) dx = <span class="hljs-number">4</span>, dy = <span class="hljs-number">4</span>;<br>    <span class="hljs-type">int</span> tr = (M + dx - <span class="hljs-number">1</span>) / dx, tc = (N + dy - <span class="hljs-number">1</span>) / dy;<br>    <span class="hljs-keyword">if</span> (M == <span class="hljs-number">32</span> || M == <span class="hljs-number">64</span>) &#123;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; tr; i++) &#123;<br>            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> j = <span class="hljs-number">0</span>; j &lt; tc; j++) &#123;<br>                <span class="hljs-type">int</span> sl = i * dx, el = min(M - <span class="hljs-number">1</span>, (i + <span class="hljs-number">1</span>) * dx - <span class="hljs-number">1</span>);<br>                <span class="hljs-type">int</span> sr = j * dy, er = min(N - <span class="hljs-number">1</span>, (j + <span class="hljs-number">1</span>) * dy - <span class="hljs-number">1</span>);<br>                <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> k = sr; k &lt;= er; k++) &#123;<br>                    <span class="hljs-type">int</span> cc = ((k * M + sl) / <span class="hljs-number">8</span>) % <span class="hljs-number">32</span>;<br>                    <span class="hljs-type">int</span> gsign = <span class="hljs-number">0</span>, gv = <span class="hljs-number">0</span>, gy;<br>                    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> l = sl; l &lt;= el; l++) &#123;<br>                        <span class="hljs-type">int</span> nc = ((l * N + k) / <span class="hljs-number">8</span>) % <span class="hljs-number">32</span>;<br>                        <span class="hljs-comment">// 若Cache相同则先不赋值</span><br>                        <span class="hljs-comment">// 确保A当前行的遍历没问题</span><br>                        <span class="hljs-comment">// A一定会占据一个B的Cache，可以等该Cache读入后顺便赋值。</span><br>                        <span class="hljs-keyword">if</span> (nc == cc) &#123;<br>                            gsign = <span class="hljs-number">1</span>;<br>                            gv = A[k][l];<br>                            gy = l;<br>                            <span class="hljs-keyword">continue</span>;<br>                        &#125;<br>                        B[l][k] = A[k][l];<br>                    &#125;<br>                    <span class="hljs-keyword">if</span> (gsign) B[gy][k] = gv;<br>                &#125;<br><br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span>;<br>    &#125;         <br>&#125;<br></code></pre></td></tr></table></figure>
+<p>结果</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">Cache</span> Lab summary:<br>                        <span class="hljs-attribute">Points</span>   Max pts      Misses<br><span class="hljs-attribute">Csim</span> correctness          <span class="hljs-number">27</span>.<span class="hljs-number">0</span>        <span class="hljs-number">27</span><br><span class="hljs-attribute">Trans</span> perf <span class="hljs-number">32</span>x32           <span class="hljs-number">8</span>.<span class="hljs-number">0</span>         <span class="hljs-number">8</span>         <span class="hljs-number">287</span><br><span class="hljs-attribute">Trans</span> perf <span class="hljs-number">64</span>x64           <span class="hljs-number">4</span>.<span class="hljs-number">0</span>         <span class="hljs-number">8</span>        <span class="hljs-number">1651</span><br><span class="hljs-attribute">Trans</span> perf <span class="hljs-number">61</span>x67          <span class="hljs-number">10</span>.<span class="hljs-number">0</span>        <span class="hljs-number">10</span>        <span class="hljs-number">1913</span><br>          <span class="hljs-attribute">Total</span> points    <span class="hljs-number">49</span>.<span class="hljs-number">0</span>        <span class="hljs-number">53</span><br></code></pre></td></tr></table></figure>
+<h3 id="ans">ans</h3>
+<p>没想到可以直接复制一行/一列
+8个作为参数，计算Cache号数的方式也比较取巧。滥用参数的下场...
+循环只占了3 - 4 个参数，只取决与嵌套的深度。核心的逻辑在于：</p>
+<ul>
+<li>一次性 横向读入 A1 A2 A3 A4 纵向写入 B1 B2 B3 B4
+（同时使得转移的过程中可以横向读入，这里B1 B2 B3 B4 可能因为与A1 A2 A3
+A4的Cache冲突多Miss一次）</li>
+<li>横向读入B1 暂存部分 (B1此时一定在Cache中)，一次性纵向读入 A5 A6 A7
+A8，读回到B1，同时读入B5，一定覆盖B1。（这里B1可能因为读入A5 A6 A7 A8
+多MISS一次，A5 同理）</li>
+<li>横向读入 A5 A6 A7 A8， 纵向写入 B5 B6 B7 B8。</li>
+<li>能够最优的前提在于 A B不占用同一个Cache的情况。</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/484657229">解答链接</a></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">transpose_64x64</span><span class="hljs-params">(<span class="hljs-type">int</span> M, <span class="hljs-type">int</span> N, <span class="hljs-type">int</span> A[N][M], <span class="hljs-type">int</span> B[M][N])</span><br>&#123;<br>    <span class="hljs-type">int</span> a_0, a_1, a_2, a_3, a_4, a_5, a_6, a_7;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">64</span>; i += <span class="hljs-number">8</span>)&#123;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> j = <span class="hljs-number">0</span>; j &lt; <span class="hljs-number">64</span>; j += <span class="hljs-number">8</span>)&#123;<br>            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> k = i; k &lt; i + <span class="hljs-number">4</span>; k++)&#123;<br>                <span class="hljs-comment">// 得到A的第1,2块</span><br>                <span class="hljs-comment">// 用了Cache A1号</span><br>                a_0 = A[k][j + <span class="hljs-number">0</span>];<br>                a_1 = A[k][j + <span class="hljs-number">1</span>];<br>                a_2 = A[k][j + <span class="hljs-number">2</span>];<br>                a_3 = A[k][j + <span class="hljs-number">3</span>];<br>                a_4 = A[k][j + <span class="hljs-number">4</span>];<br>                a_5 = A[k][j + <span class="hljs-number">5</span>];<br>                a_6 = A[k][j + <span class="hljs-number">6</span>];<br>                a_7 = A[k][j + <span class="hljs-number">7</span>];<br>                <span class="hljs-comment">// 复制给B的第1,2块</span><br>                <span class="hljs-comment">// 用了Cache B1 B2 B3 B4</span><br>                <span class="hljs-comment">// 正确的</span><br>                B[j + <span class="hljs-number">0</span>][k] = a_0;<br>                B[j + <span class="hljs-number">1</span>][k] = a_1;<br>                B[j + <span class="hljs-number">2</span>][k] = a_2;<br>                B[j + <span class="hljs-number">3</span>][k] = a_3;<br>                <br>                <span class="hljs-comment">// 暂存</span><br>				B[j + <span class="hljs-number">0</span>][k + <span class="hljs-number">4</span>] = a_4;<br>                B[j + <span class="hljs-number">1</span>][k + <span class="hljs-number">4</span>] = a_5;<br>                B[j + <span class="hljs-number">2</span>][k + <span class="hljs-number">4</span>] = a_6;<br>                B[j + <span class="hljs-number">3</span>][k + <span class="hljs-number">4</span>] = a_7;<br>            &#125;<br>            <span class="hljs-comment">// Cache B1 B2 B3 B4 传输完成</span><br>            <br>            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> k = j; k &lt; j + <span class="hljs-number">4</span>; k++)&#123;<br>                <span class="hljs-comment">// 得到B的第2块</span><br>            	<span class="hljs-comment">// 使用 B1</span><br>                a_0 = B[k][i + <span class="hljs-number">4</span>];<br>                a_1 = B[k][i + <span class="hljs-number">5</span>];<br>                a_2 = B[k][i + <span class="hljs-number">6</span>];<br>                a_3 = B[k][i + <span class="hljs-number">7</span>];<br>                <br>                <span class="hljs-comment">// 读入A5</span><br>                a_4 = A[i + <span class="hljs-number">4</span>][k];<br>                a_5 = A[i + <span class="hljs-number">5</span>][k];<br>                a_6 = A[i + <span class="hljs-number">6</span>][k];<br>                a_7 = A[i + <span class="hljs-number">7</span>][k];<br>                <br>                <span class="hljs-comment">// 复制给B的第2块</span><br>                B[k][i + <span class="hljs-number">4</span>] = a_4;<br>                B[k][i + <span class="hljs-number">5</span>] = a_5;<br>                B[k][i + <span class="hljs-number">6</span>] = a_6;<br>                B[k][i + <span class="hljs-number">7</span>] = a_7;<br>                <br>                <span class="hljs-comment">// B原来的第2块移动到第3块</span><br>                <span class="hljs-comment">// 同时覆盖B1</span><br>                B[k + <span class="hljs-number">4</span>][i + <span class="hljs-number">0</span>] = a_0;<br>                B[k + <span class="hljs-number">4</span>][i + <span class="hljs-number">1</span>] = a_1;<br>                B[k + <span class="hljs-number">4</span>][i + <span class="hljs-number">2</span>] = a_2;<br>                B[k + <span class="hljs-number">4</span>][i + <span class="hljs-number">3</span>] = a_3;<br>            &#125;<br>            <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> k = i + <span class="hljs-number">4</span>; k &lt; i + <span class="hljs-number">8</span>; k++)<br>            &#123;<br>                <span class="hljs-comment">// 处理第4块</span><br>                a_4 = A[k][j + <span class="hljs-number">4</span>];<br>                a_5 = A[k][j + <span class="hljs-number">5</span>];<br>                a_6 = A[k][j + <span class="hljs-number">6</span>];<br>                a_7 = A[k][j + <span class="hljs-number">7</span>];<br>                B[j + <span class="hljs-number">4</span>][k] = a_4;<br>                B[j + <span class="hljs-number">5</span>][k] = a_5;<br>                B[j + <span class="hljs-number">6</span>][k] = a_6;<br>                B[j + <span class="hljs-number">7</span>][k] = a_7;<br>            &#125;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h1 id="小结">小结</h1>
+<ol type="1">
+<li><p>代码习惯</p>
+<ul>
+<li><p>Part A没有建立数据结构，导致函数传参的复杂。</p></li>
+<li><p>Part B
+设置了一些没必要的参数，以至于没意识到12个参数的意义在于可以复制一整列 /
+行。</p></li>
+</ul></li>
+<li><p>Cache替换</p>
+<ul>
+<li>两个数组起始所占的Cache行号是否相同</li>
+<li>二位数组不同行之间的Cache行号是否相同</li>
+<li>每读入一个Cache块，能够做到的最少被占用的次数。</li>
+<li>具体到二维数组的转置，在知道Cache块大小和Cache行数的情况下，可以做针对性的优化。</li>
+<li>因此一般而言，设置大小适中的block有一定概率能够提高程序运行的速度。</li>
+<li>以块的整个周期来分析平均MISS的次数，以此推断整体的MISS。</li>
+</ul></li>
+</ol>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/CS/">CS</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/06/29/arch/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">CS:APP Arch Lab记录</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/02/19/attack/">
+                        <span class="hidden-mobile">CS:APP Attack Lab记录</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        loader: {
+          load: ['ui/lazy']
+        },
+        options: {
+          renderActions: {
+            findScript: [10, doc => {
+              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+                const display = !!node.type.match(/; *mode=display/);
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                const text = document.createTextNode('');
+                node.parentNode.replaceChild(text, node);
+                math.start = { node: text, delim: '', n: 0 };
+                math.end = { node: text, delim: '', n: 0 };
+                doc.math.push(math);
+              });
+            }, '', false],
+            insertedScript: [200, () => {
+              document.querySelectorAll('mjx-container').forEach(node => {
+                let target = node.parentNode;
+                if (target.nodeName.toLowerCase() === 'li') {
+                  target.parentNode.classList.add('has-jax');
+                }
+              });
+            }, '', false]
+          }
+        }
+      };
+    </script>
+
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

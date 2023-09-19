@@ -1,0 +1,715 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/images/icon.png">
+  <link rel="icon" href="/images/icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="th-loading">
+  <meta name="keywords" content="">
+  <meta name="description" content="matrix basic dot product transpose \[ (AB)^T &#x3D; B^TA^T \] 如果结果为scaler(标量 \(1\times1\)),则转置等于自身 regression BLUE best linear unbiased estimator (最佳线性无偏估计) OLS ordinary least square \[ y &#x3D; X \beta + \epsi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="math">
+<meta property="og:url" content="http://example.com/2021/10/07/math/index.html">
+<meta property="og:site_name" content="loading">
+<meta property="og:description" content="matrix basic dot product transpose \[ (AB)^T &#x3D; B^TA^T \] 如果结果为scaler(标量 \(1\times1\)),则转置等于自身 regression BLUE best linear unbiased estimator (最佳线性无偏估计) OLS ordinary least square \[ y &#x3D; X \beta + \epsi">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-10-07T10:56:08.000Z">
+<meta property="article:modified_time" content="2023-09-19T12:04:21.712Z">
+<meta property="article:author" content="th-loading">
+<meta name="twitter:card" content="summary_large_image">
+  
+  <title>math - loading</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":false,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>loading</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/images/tb.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="math">
+              
+                math
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-10-07 18:56" pubdate>
+        2021年10月7日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      4.8k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      15 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">math</h1>
+            
+            <div class="markdown-body">
+              <h1 id="matrix">matrix</h1>
+<h2 id="basic">basic</h2>
+<h3 id="dot-product">dot product</h3>
+<h3 id="transpose">transpose</h3>
+<p><span class="math display">\[
+(AB)^T = B^TA^T
+\]</span></p>
+<p>如果结果为scaler(标量 <span
+class="math inline">\(1\times1\)</span>),则转置等于自身</p>
+<h2 id="regression">regression</h2>
+<h3 id="blue">BLUE</h3>
+<p>best linear unbiased estimator (最佳线性无偏估计)</p>
+<h3 id="ols">OLS</h3>
+<p>ordinary least square <span class="math display">\[
+y = X \beta + \epsilon
+\]</span></p>
+<p><span class="math display">\[
+\begin{bmatrix}
+Y_1\\
+Y_2\\
+\vdots\\
+\vdots\\
+Y_n
+\end{bmatrix}_{n\times1}= \begin{bmatrix}
+1 &amp; X_{11} &amp; X_{12} &amp; \dots &amp; X_{1k}\\
+1 &amp; X_{21} &amp; X_{22} &amp; \dots &amp; X_{2k}\\
+\vdots &amp; \vdots &amp; \vdots &amp; \dots &amp; \vdots\\
+\vdots &amp; \vdots &amp; \vdots &amp; \dots &amp; \vdots\\
+1 &amp; X_{n1} &amp; X_{n2} &amp; \dots &amp; X_{nk}\\
+\end{bmatrix}_{n \times k} \begin{bmatrix}
+\beta_1\\
+\beta_2\\
+\vdots\\
+\vdots\\
+\beta_n
+\end{bmatrix}_{k+1}+\begin{bmatrix}
+\epsilon_1\\
+\epsilon_2\\
+\vdots\\
+\vdots\\
+\epsilon_n
+\end{bmatrix}_{n\times 1}
+\]</span> 常数项 <span class="math inline">\(\beta_1\)</span> <span
+class="math display">\[
+RSS=e&#39;e=\begin{bmatrix}
+e_1 &amp; e_2 &amp; \dots &amp; \dots &amp; e_n
+\end{bmatrix}_{1 \times n} \begin{bmatrix}
+e_1 \\ e_2 \\ \vdots \\ \vdots \\ e_n
+\end{bmatrix}_{n\times1}
+\]</span></p>
+<p><span class="math display">\[
+\begin{align}
+e&#39;e &amp;= (y-X\hat\beta)&#39;(y-X\hat\beta)\\
+&amp;=y&#39;y-\hat\beta&#39;X&#39;y-y&#39;X\hat \beta + \hat
+\beta&#39;X&#39;X\hat \beta\\
+&amp;= y&#39;y - 2\hat\beta&#39;X&#39;y + \hat \beta&#39;X&#39;X\hat
+\beta
+\end{align}
+\]</span></p>
+<p>由于<span class="math inline">\(\hat \beta&#39;X&#39;y\)</span> 与
+<span class="math inline">\(y&#39;X\hat \beta\)</span>
+都是scaler，转置为它本身。</p>
+<h2 id="矩阵求导">矩阵求导</h2>
+<p><span class="math inline">\(\frac{\partial X&#39;\beta}{\partial
+\beta}=X&#39;\)</span></p>
+<p><span class="math inline">\(\frac{\partial h&#39;Vh}{\partial
+h&#39;}=Vh\)</span> （分别求偏导） <span class="math display">\[
+\frac{\partial X\beta}{\partial \beta}= \frac{\partial
+\beta&#39;X}{\partial \beta} =X\\
+\frac{\partial e&#39;e}{\partial \beta } = -2X&#39;y + 2X&#39;X\hat
+\beta = 0\\
+\hat \beta = (X&#39;X)^{-1}X&#39;y
+\]</span></p>
+<h3 id="assumption">Assumption</h3>
+<p>the Gauss-Markov Assumptions</p>
+<ol type="1">
+<li><p><span class="math inline">\(y=X\beta+\epsilon\)</span></p>
+<p>存在某种线性关系</p></li>
+<li><p>X is an <span class="math inline">\(n\times k\)</span> matrix of
+full rank</p>
+<p>多重共线性 满秩举证</p></li>
+<li><p><span class="math inline">\(E(\epsilon|X)=0\)</span></p></li>
+<li><p><span
+class="math inline">\(E(\epsilon\epsilon&#39;|X)=\sigma^2I\)</span></p>
+<p>homoscedasticity 同方差性 no autocorrelation 相关性</p>
+<p>方差为定值，0均值</p></li>
+<li><p>X is unrelated to <span
+class="math inline">\(\epsilon\)</span></p></li>
+<li><p>often: <span class="math inline">\(\epsilon|X \sim
+N[0,\sigma^2I]\)</span></p></li>
+</ol>
+<h3 id="gls">GLS</h3>
+<p>heteroscedasticity 异方差</p>
+<p>transformation:</p>
+<p>使得<span class="math inline">\(P\Sigma\)</span>等价于<span
+class="math inline">\(\epsilon\)</span> <span class="math display">\[
+var(\epsilon\epsilon&#39;|X) = \sigma^2\Omega\\
+Py =PX\hat\beta +P\Sigma\\
+P = \Omega^{\frac{1}{2}}
+\]</span></p>
+<p>WLS independent value <span class="math display">\[
+\Omega_{WLS} = \begin{bmatrix}
+w_{11}&amp;0&amp;\dots&amp;0\\
+0&amp;w_{22}&amp;\dots&amp;\vdots\\
+\vdots&amp;\vdots&amp;\ddots&amp;\vdots\\
+0&amp;0&amp;\dots&amp;w_{nn}\\
+\end{bmatrix}\\
+\]</span> 考虑covariance <span class="math display">\[
+\quad\\
+\Omega_{GLS} = \begin{bmatrix}
+\sigma_{11}&amp;\sigma_{12}&amp;\dots&amp;\sigma_{1n}\\
+\sigma_{21}&amp;\sigma_{22}&amp;\dots&amp;\vdots\\
+\vdots&amp;\vdots&amp;\ddots&amp;\vdots\\
+\sigma_{n1}&amp;\sigma_{n2}&amp;\dots&amp;\sigma_{nn}\\
+\end{bmatrix}\\
+\]</span></p>
+<h3 id="arma">ARMA</h3>
+<p>对残差再进行拟合 -&gt; partial autocorrelation -&gt;
+残差与lag相关</p>
+<h3 id="r2"><span class="math inline">\(R^2\)</span></h3>
+<p><span class="math display">\[
+R^2=\frac{\sum\limits^n_{i=0}(\hat y_i-\overline
+y)^2}{\sum\limits^n_{i=0}(y_i-\overline
+y)^2}=\frac{Y&#39;P&#39;TLPY}{Y&#39;LY}=1-\frac{Y&#39;MY}{Y&#39;LY}
+=1-\frac{RSS}{TSS}
+\]</span></p>
+<p>TSS: total sum of squares RSS: residual sum of squares</p>
+<h1 id="最优化">最优化</h1>
+<h2 id="lagrange乘数">Lagrange乘数</h2>
+<p>Lagrange multiplier <span class="math display">\[
+\begin{align}
+\max \quad&amp; f(x,y)\\
+s.t.\quad&amp;g(x,y)=0
+\end{align}
+\]</span></p>
+<p><span class="math display">\[
+\mathcal{L}(x,y,\lambda)=f(x,y)-\lambda g(x,y)
+\]</span></p>
+<p><span class="math display">\[
+\bigtriangledown_{x,y,\lambda}\mathcal{L}(x,y,\lambda)=0\\
+\]</span></p>
+<p>其中<span
+class="math inline">\(\bigtriangledown_{x,y,\lambda}\mathcal{L}(x,y,z)\)</span>表示函数分别对<span
+class="math inline">\(x,y,z\)</span>取偏导，</p>
+<h3 id="intuition">intuition</h3>
+<p><span class="math display">\[
+\begin{cases}
+\bigtriangledown f(x,y)=\lambda \bigtriangledown g(x,y)\\
+g(x,y)=0
+\end{cases}
+\]</span></p>
+<p><span
+class="math inline">\(g(x,y)\)</span>的自由度为1，可视为曲线，而与<span
+class="math inline">\(f(x,y)\)</span>等高线相切的位置，就是函数的一个极值（相交则有多个点）
+其中梯度代表了与等高线（降维）垂直的矢量，所以当梯度平行时<span
+class="math inline">\(\bigtriangledown f(x,y)=\lambda \bigtriangledown
+g(x,y)\)</span>可取到极值。</p>
+<h1 id="统计">统计</h1>
+<h2 id="describe">describe</h2>
+<h3 id="skew">skew</h3>
+<h3 id="kurtosis">kurtosis</h3>
+<p>heavy tails and outliers(离群值) -&gt; 常用于黑天鹅事件</p>
+<p>power law distribution <span
+class="math inline">\(x^{-\alpha}\)</span>
+均值并不会随样本数的增多而收敛（不满足大数定律）long tail 28定律</p>
+<h2 id="basic-1">basic</h2>
+<h3 id="rvs">rvs</h3>
+<p>Random variates</p>
+<h3 id="确定参数">确定参数</h3>
+<p>通过 maximum likelihood</p>
+<h3 id="normal">normal</h3>
+<p>接近样本数极多的二项分布，应用较广，模拟了现实多因素影响（数量极多的二项分布）最终往往趋于正态分布，且互相之间不存在相关性，但正态分布的收敛较快，且金融数据之间相关性较强，不适用于正态分布，数量级为
+<span class="math inline">\(e^{-x^2}\)</span></p>
+<h2 id="random-walk">random walk</h2>
+<h3 id="简单随机游走">简单随机游走</h3>
+<p>simple random walk <span class="math display">\[
+Z_i=
+\begin{cases}
+1 &amp;p=\frac{1}{2}\\
+-1&amp;p=\frac{1}{2}
+\end{cases}
+\]</span></p>
+<p><span class="math display">\[
+S_n = \sum\limits_{j=1}^nZ_i
+\]</span></p>
+<p><span class="math display">\[
+E(S_n)=0
+\]</span></p>
+<p><span class="math display">\[
+\sigma^2 = E(S_n^2) =
+\sum\limits_{i=1}^nE(Z_i^2)+2\sum\limits_{i=1}^n\sum\limits_{j=1}^nE(Z_iZ_j)=n
+\]</span></p>
+<p><span class="math display">\[
+\lim\limits_{n \rightarrow\infty}\frac{E(|S_n|)}{\sqrt{n}} =
+\sqrt{\frac{2}{\pi}}
+\]</span></p>
+<h3 id="wiener-process">Wiener process</h3>
+<p><span class="math display">\[
+\Delta W = \varepsilon_t\sqrt{\Delta t}
+\]</span></p>
+<p>取 <span class="math inline">\(\sqrt{\Delta t}\)</span>
+的原因：收敛较慢，可以体现锯齿状（jagged）不会出现frozen，和无限大。
+<span class="math display">\[
+\varepsilon_t \sim N(0,1)
+\]</span></p>
+<p><span class="math display">\[
+E(\Delta W_t^2) = (\sqrt{\Delta t})^2E(\varepsilon^2) = \Delta t
+\]</span></p>
+<p><span class="math display">\[
+W_T=(\varepsilon_0+\varepsilon_{\Delta_t}+\cdots+\varepsilon_{T-\Delta_t})\sqrt{\Delta
+t}
+\]</span></p>
+<p><span class="math display">\[
+E(W_T^2) =n\Delta t = T
+\]</span></p>
+<p><span class="math display">\[
+W_T\sim N(0,T)
+\]</span></p>
+<p><span class="math display">\[
+W_{t_2}- W_{t_1} \sim N(0,t_2-t_1)
+\]</span></p>
+<h2 id="test">test</h2>
+<h3 id="t-test">t-test</h3>
+<p><span class="math display">\[
+\frac{\overline x-\mu}{s/\sqrt{n}}\sim t(n-1)
+\]</span></p>
+<p>自由度与sample个数有关，sample越多越接近正态分布，由于heavy
+tail常用于金融数据，skew-student可以完善。</p>
+<p>置信区间 <span class="math display">\[
+m\pm t \frac{d}{\sqrt{n}}
+\]</span></p>
+<h2 id="bayes">Bayes</h2>
+<h3 id="后验">后验</h3>
+<p>posterior distribution <span class="math display">\[
+L(\theta|x)\sim Bin(n,p)=\theta ^k(1-\theta)^{n-k}
+\]</span> <span class="math inline">\(L(\theta|x)\)</span>为似然估计
+likelihood <span class="math display">\[
+p(\theta) \sim
+\beta(a,b)=\frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)}\theta^{a-1}(1-\theta)^{b-1}
+\]</span> <span class="math inline">\(p(\theta)\)</span>为 prior
+随着观察次数的改变而改变，a、b 为观察正/反面的情况 <span
+class="math display">\[
+\begin{align}
+p(\theta|x)&amp;=\frac{L(\theta|x)p(\theta)}{\int^1_0
+L(\theta|x)p(\theta)d\theta}\\
+&amp;=
+\frac{\Gamma(a+b+n)}{\Gamma(a+k)\Gamma(b+n-k)}\theta^{a+k-1}(1-\theta)^{b+n-k+1}
+\end{align}
+\]</span></p>
+<p><span class="math inline">\(p(\theta|x)\)</span>即 posterior
+distribution</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/10/07/hexo/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Hexo配置</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/10/07/test-md/">
+                        <span class="hidden-mobile">test.md</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        loader: {
+          load: ['ui/lazy']
+        },
+        options: {
+          renderActions: {
+            findScript: [10, doc => {
+              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+                const display = !!node.type.match(/; *mode=display/);
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                const text = document.createTextNode('');
+                node.parentNode.replaceChild(text, node);
+                math.start = { node: text, delim: '', n: 0 };
+                math.end = { node: text, delim: '', n: 0 };
+                doc.math.push(math);
+              });
+            }, '', false],
+            insertedScript: [200, () => {
+              document.querySelectorAll('mjx-container').forEach(node => {
+                let target = node.parentNode;
+                if (target.nodeName.toLowerCase() === 'li') {
+                  target.parentNode.classList.add('has-jax');
+                }
+              });
+            }, '', false]
+          }
+        }
+      };
+    </script>
+
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

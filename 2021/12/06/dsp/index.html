@@ -1,0 +1,836 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/images/icon.png">
+  <link rel="icon" href="/images/icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="th-loading">
+  <meta name="keywords" content="">
+  <meta name="description" content="Abstract This article begins by explaining the meaning, motivation, and development of channel encoding. The concepts of two modern 5G code systems, particularly polar codes, are then discussed, along">
+<meta property="og:type" content="article">
+<meta property="og:title" content="A survey on 5G channel encoding technology">
+<meta property="og:url" content="http://example.com/2021/12/06/dsp/index.html">
+<meta property="og:site_name" content="loading">
+<meta property="og:description" content="Abstract This article begins by explaining the meaning, motivation, and development of channel encoding. The concepts of two modern 5G code systems, particularly polar codes, are then discussed, along">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/binary%20erasure%20channel.png">
+<meta property="og:image" content="http://example.com/images/polar%20code%20.png">
+<meta property="article:published_time" content="2021-12-06T11:52:20.000Z">
+<meta property="article:modified_time" content="2023-09-19T12:04:21.712Z">
+<meta property="article:author" content="th-loading">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/images/binary%20erasure%20channel.png">
+  
+  <title>A survey on 5G channel encoding technology - loading</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":false,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>loading</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/images/tb.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="A survey on 5G channel encoding technology">
+              
+                A survey on 5G channel encoding technology
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-12-06 19:52" pubdate>
+        2021年12月6日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      15k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      48 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">A survey on 5G channel encoding technology</h1>
+            
+            <div class="markdown-body">
+              <h1 id="abstract">Abstract</h1>
+<p>This article begins by explaining the meaning, motivation, and
+development of channel encoding. The concepts of two modern 5G code
+systems, particularly polar codes, are then discussed, along with their
+pros and downsides. Following that, the international standard and
+application scenarios for current codes are presented. China's
+participation is also highlighted. Finally, it depicts the channel
+coding technology's future trends.</p>
+<h1 id="introduction">Introduction</h1>
+<h2 id="basis">Basis</h2>
+<p>One of the source encoder's functions, as mentioned in Source
+encoding, is to remove unnecessary binary digits from the digitized
+signal. The channel encoder's technique, on the other hand, is to
+provide redundancy to the broadcast signal in order to repair errors
+caused by noise during transmission at the receiver. Error-control
+coding is a method of encoding that protects against channel errors.
+Satellite communication, deep-space communication, mobile radio
+communication, and computer networking are all applications that require
+error-control codes.</p>
+<p>There are two generally used ways of preventing errors in
+electronically transferred data. Forward error control is one way (FEC).
+Information bits are secured against errors in this approach by
+transmitting extra redundant bits, which can be used by the decoder to
+detect where errors occurred and how to rectify them if they occur
+during transmission. The automatic repeat request method is the second
+approach to error control (ARQ). This method involves adding redundant
+bits to the transmitted data, which the recipient uses to detect errors.
+A request for a repeat broadcast is then sent by the recipient.</p>
+<p>To control errors, we can employ repetition codes, the Hamming code,
+and convolutional encoding. Repetition codes simply work by sending each
+data bit three times. Because the information is blocked into
+finite-length bit sequences to which a number of superfluous bits are
+added, the Hamming code is called a block code. When a block encoder
+receives k information bits, n k redundancy bits are appended to the
+information bits to create a transmitted code word of n bits. One block
+of k information bits can so determine the entire code word of length n.
+As to convolutional encoding, the encoder output is an endless stream of
+bits rather than being naturally split into chunks. Memory is used in
+convolutional encoding such that the encoder output is determined by the
+previous M blocks of k information bits combined with the current block
+of k information bits.</p>
+<h2 id="motivation">Motivation</h2>
+<p>The digital signal will create error codes during transmission due to
+the noise in the mobile communication system. To improve system
+reliability, a variety of methods (use error correction/error detection
+coding technology, increase the signal transmission power, etc.) are
+required to improve signal and reduce the system error rate.</p>
+<p>There are numerous benefits to using a higher-performing channel
+encoding method.</p>
+<ol type="1">
+<li>Noise and interference rise when more data is delivered across a
+network. Better error correction helps the system to withstand the
+higher errors caused, allowing for more capacity and, as a result, lower
+per-user costs.</li>
+<li>Channel coders and decoders with higher performance can handle
+higher data rates, resulting in increased throughput.</li>
+<li>Increasing the wireless link's efficiency lowers the power needs at
+both the base station and the user's device, resulting in longer battery
+life.</li>
+</ol>
+<h2 id="development-history">Development History</h2>
+<p>The field of channel coding started with Claude Shannon’s 1948
+landmark paper. Its main goal for the next half-century was to develop
+viable coding systems that approached the Shannon limit on a few
+well-understood channels, such as the additive white Gaussian noise
+channel.</p>
+<p>There was always a 2 to 3dB gap between the designed system gain and
+Shannon theoretical limit before the Turbo code was discovered. Turbo
+code is also known as parallel concatenated convolutional code. Turbo
+Codes and Tail Bitting Convolution Codes (TBCC) have proven to be
+efficient for LTE communication. Turbo code has been widely used in
+mobile communication technology. This technique is used for channel
+coding from 3G to 4G and even 4.5G. Two convolutional encoders, two
+serial decoders, and one interleaver are used in Turbo codes. Turbo
+codes receive their name from a revolutionary feedback loop they use
+that, at least conceptually, works in the same way that turbo exhaust
+systems do in cars. The actual novelty in turbo codes is in the
+cleverness with which soft data is used. Prior systems required hard
+knowledge of the received bits (e.g., 0s or 1s). Turbo codes, on the
+other hand, simply require a probabilistic assessment of each bit to be
+correctly decoded. This effectively permits much more data to be
+transmitted through turbo code channels.</p>
+<p>However, Turbo code has many iterations and a large decoding delay,
+which is difficult to meet the network requirements of 5G with high
+speed and low delay. These codes failed to meet the requirements for 5G
+communications. To meet the requirements of 5G communications, LDPC and
+Polar codes are used for error correction.</p>
+<p>When Gallager first created LDPC codes in 1963, they were impractical
+to apply and were forgotten until his work was rediscovered in 1996.
+Turbo codes, another class of capacity-approaching codes developed in
+1993, became the de facto coding scheme in the late 1990s, with
+applications such as the Deep Space Network and satellite
+communications. Low-density parity-check codes, on the other hand, have
+surpassed turbo codes in terms of error floor and performance in the
+higher code rate range, leaving turbo codes suitable exclusively to
+lower code rates.</p>
+<p>Polar codes were invented in 2009 by Erdal Arikan. They are the first
+family of error-correcting codes that achieve the Shannon capacity. In
+October 2016, Huawei announced that in 5G field trials using polar codes
+for channel coding, it achieved 27 G bit/s. The improvements have almost
+bridged the gap between channel performance and the Shannon limit, which
+defines the highest rate for a given bandwidth and noise level.</p>
+<h1 id="key-technology">Key Technology</h1>
+<h2 id="channel-capacity">Channel capacity</h2>
+<p>Channel capacity indicates the theoretical maximum amount of
+information that can be transmitted in a channel. <span
+class="math display">\[
+\begin{align*}
+&amp; R = I(X;Y) = H(X)- H(X|Y) \\
+&amp; C = \max_{p(a_i)}I(X;Y) \\
+\end{align*}
+\]</span> Shannon theorem indicates that the capacity of the channel
+with noise is related to the bandwidth and signal-to-noise ratio of the
+transmission channel under certain bandwidth. <span
+class="math display">\[
+C = 2B\log_2({1 + \frac{S}{N}})
+\]</span> Shannon also pointed out that if the information rate R is not
+greater than the communication channel's capacity C, a coding approach
+might be used to achieve the reliable transmission of information.
+However, the Shannon theorem does not specify how this system can be
+implemented.</p>
+<h2 id="ldpc-codes">LDPC codes</h2>
+<p>LDPC (Low-density parity-check code) was first proposed by Gallager
+in 1962. The initial theory of LDPC is based on binary domain, that is,
+binary LDPC. With further research on LDPC, LDPC is extended to a
+multivariate domain, namely multivariate LDPC. Binary LDPC has been
+widely used in the field of communication and broadcasting, and the
+research on multivariate LDPC has achieved remarkable results.</p>
+<p>A sparse Tanner graph subclass of the bipartite graph is used to
+create an LDPC. A Tanner graph is a bipartite graph named after Michael
+Tanner that is used to express constraints or equations that specify
+error-correcting codes. Theoretical coding Tanner graphs are used to
+combine smaller codes into longer ones. These graphs are used
+extensively by both encoders and decoders.</p>
+<p>LDPC codes are capacity-approaching codes, which means that practical
+constructions exist that allow the noise threshold to be set very close
+to the theoretical maximum (the Shannon limit) for a symmetric
+memoryless channel. The noise threshold defines an upper bound for the
+channel noise, up to which the probability of lost information can be
+made as small as desired.</p>
+<p>Belief propagation, also known as sum-product message passing, is a
+message-passing method used to infer from graphical models like Bayesian
+networks and Markov random fields. It determines the marginal
+distribution for each unseen node (or variable) based on any observed
+nodes (or variables). Belief propagation is widely employed in
+artificial intelligence and information theory, with empirical success
+in a variety of applications such as low-density parity-check codes,
+turbo codes, free energy approximation, and satisfiability.</p>
+<p>Using iterative belief propagation techniques, LDPC codes can be
+decoded in time linear to their block length.</p>
+<h2 id="polar-codes">Polar codes</h2>
+<p>Polar codes depend on channel polarization and are the first provable
+code construction to achieve Shannon capacity for arbitrary symmetric
+binary input channels. It has lower complexity and improved BER (Bit
+Error Ratio) performance. And it includes high-performance error
+correction technology. And most importantly, polar codes do not exhibit
+the error flow behavior, which means a higher SNR will definitely result
+in a lower error rate.</p>
+<p>Using a simple example from the
+lecture<sup id="fnref:1" class="footnote-ref"><a href="#fn:1" rel="footnote"><span
+class="hint--top hint--rounded"
+aria-label="https://www.youtube.com/watch?v=zYOXFt0Ixwk
+">[1]</span></a></sup>, we can quickly gain an intuitive understanding
+of the polar code.</p>
+<p>BEC (Binary Erasure Channel) is a channel in which a transmitter
+sends a bit (a zero or a one), and the receiver either gets the bit
+correctly or receives a message indicating that the bit was not received
+("erased") with a certain probability $ $. As shown in the picture.</p>
+<p><img src="/images/binary%20erasure%20channel.png" srcset="/img/loading.gif" lazyload alt="a binary erasure channel" style="zoom:50%;" /></p>
+<p>The simplest case of polar code is considered first. The process of
+Chanel Polarization is shown in the diagram below when the code length
+is two.</p>
+<figure>
+<img src="/images/polar%20code%20.png" srcset="/img/loading.gif" lazyload alt="polarization" />
+<figcaption aria-hidden="true">polarization</figcaption>
+</figure>
+<p>The decoding of U1 is as follows <span class="math display">\[
+\begin{equation}
+U_1 =
+    \begin{cases}
+      Y_1 \oplus Y_2, &amp; \text{if } Y_1, Y_2 \in \left\{ 0, 1
+\right\}\\
+      \text{?} \oplus Y_2, &amp; \text{if } Y_1 =\text{?}, Y_2 \in
+\left\{ 0, 1 \right\}\\
+      Y_1 \oplus \text{?}, &amp; \text{if } Y_1 \in \left\{ 0, 1
+\right\}, Y_2=\text{?}\\
+      \text{?} \oplus \text{?}, &amp; \text{if } Y_1=\text{?}, Y_2
+=\text{?}\\
+    \end{cases}
+\end{equation}
+\]</span> As shown in the equation, the receiver can get the U1
+information only when both Y1 and Y2 are sent successfully. If we
+consider the transition of U1 as channel 1, the erasure probability is
+<span class="math display">\[
+P_1 = 1 - (1-\epsilon)^2 = 2\epsilon-\epsilon^2
+\]</span> Assuming that U1 transmission is successful, the sending of U2
+is <span class="math display">\[
+\begin{equation}
+U_2 =
+    \begin{cases}
+      Y_1 \oplus U_1, &amp; \text{if } Y_1\in \left\{ 0, 1 \right\}\\
+      Y_2, &amp; \text{if } Y_2 \in \left\{ 0, 1 \right\}\\
+      \text{?}, &amp; \text{if } Y_1 = Y_2=\text{?}\\
+    \end{cases}
+\end{equation}
+\]</span> As shown in the equation, the receiver can't get the U1
+information only when both Y1 and Y2 are sent unsuccessfully. If we
+consider the transition of U2 as channel 2, the erasure probability is
+<span class="math display">\[
+P_2 = \epsilon^2 \\
+\]</span> After the above transformation, called polarization, we
+get<br />
+<span class="math display">\[
+P2 = \epsilon^2\le \epsilon \le 2\epsilon-\epsilon^2 = P_1, \epsilon \in
+[0, 1]
+\]</span> If we make U1 be the frozen bit, and U2 be the info bit, the
+erasure probability of U2 can be decreased.</p>
+<p>Then we consider a new channel that has 4 bits and the erasure
+probabilities are <span class="math display">\[
+\begin{align*}
+&amp; P_{1}&#39; = 1 - (1 - P_1)^2 = 1 - (1-\epsilon)^4 \\
+&amp; P_{2}&#39; = 1 - (1 - P_2)^2 = 1 - (1 - \epsilon^2)^2 \\
+&amp; P_{3}&#39; = {P_1}^2 = (\epsilon^2 + 2\epsilon)^2 \\
+&amp; P_{4}&#39; = {P_2}^2 = \epsilon^4 \\
+\end{align*}
+\]</span> As shown in the equation, the fourth bit gets a lower erasure
+probability.</p>
+<p>It can be proved that polar codes are capable of achieving channel
+capacity as code length approaches positive infinity.</p>
+<h2 id="compare">Compare</h2>
+<p>Based on the analysis, Compared with the Turbo code system, the LDPC
+system has many advantages.</p>
+<ol type="1">
+<li>low system complexity, low time delay and easier hardware
+implementation</li>
+<li>better frame error ratio performance</li>
+<li>error-floor is greatly reduced to meet the demand of extremely low
+error rate for communication system</li>
+<li>the decoder has smaller power, adopts parallel decoding, and has a
+higher data throughput.</li>
+</ol>
+<p>But LDPC codes are not a complete alternative to turbo code, It is
+concluded that the turbo code has better performance in moderate code
+rate (Rate 1/2) while the LDPC is recommended for higher code rates
+(3/4,7/8) because it has better performance beside less complexity
+compared with turbo code. For turbo code, all code rates require the
+same decoding complexity since all code rates are obtained from the
+mother code via puncturing. In contrast, the LDPC decoding complexity
+decreases as the code rate increases.</p>
+<p>Compared with the LDPC, Turbo code system, the polar codes has
+several advantages.</p>
+<ol type="1">
+<li>A higher SNR will definitely result in a lower error rate in a polar
+code system.</li>
+<li>Its coding and decoding complexity is low. When the coding length is
+N, the complexity is only O(NlogN).</li>
+</ol>
+<p>Compared with polar codes, the LDPC system also has some
+advantages.</p>
+<ol type="1">
+<li>LDPC has developed for many years and the infrastructure is
+relatively well developed while Polar code is still a new
+technology.</li>
+<li>systems using multivariate LDPC have better band utilization, and
+they also perform better in middle and shorter code length than Polar
+code.</li>
+</ol>
+<h1 id="application">Application</h1>
+<h2 id="international-standard">International Standard</h2>
+<p>IEEE 802.16, a wireless metropolitan network standard, uses block
+turbo coding and convolutional turbo coding.</p>
+<p>Three application scenarios have been identified by the 5G standard:
+eMBB (improved mobile broadband), mMTC (large connected Internet of
+things), and URLLC (ultra-reliable ultra-low latency communication).
+eMBB stands for high-traffic mobile broadband, such as 3D
+ultra-high-definition video, mMTC stands for large-scale Internet of
+things business, and URLLC stands for services needing low-delay and
+high-reliability connections, such as manless driving and industrial
+automation. The LDPC code was established as a long block coding method
+for mobile broadband eMBB scenario business data channel coding at the
+3GPPTSGRANWG1 conference in October 2016. The control channel coding
+method for the 5G short block of the eMBB scenario was determined to
+employ Polar code in November 2016 at the 3GPPRAN1 meeting.</p>
+<p>The WiFi standard 802.11ac has embraced LDPC as a channel coding
+standard. In 2003, an irregular repeat accumulates (IRA) type LDPC code
+defeated six turbo codes to become the error-correcting code in the new
+DVB-S2 digital television satellite transmission standard. The ITU-T
+G.hn standard chose LDPC over convolutional turbo codes as the forward
+error correction (FEC) system in 2008. G.hn chose LDPC codes over turbo
+codes due to their lower decoding complexity (particularly at data rates
+near 1.0 Gbit/s) and the fact that the proposed turbo codes had a large
+error floor over the specified range of operation. 10GBASE-T Ethernet,
+which transfers data at 10 gigabits per second over twisted-pair lines,
+also uses LDPC codes. As of 2009, LDPC codes are also part of the Wi-Fi
+802.11 standard as an optional part of 802.11n and 802.11ac, in the High
+Throughput (HT) PHY specification.</p>
+<h2 id="application-scenarios">Application Scenarios</h2>
+<p>Turbo codes are used in many ways.</p>
+<ol type="1">
+<li>extensively in 3G and 4G mobile telephony standards; e.g., in HSPA,
+EV-DO, and LTE.</li>
+<li>MediaFLO, terrestrial mobile television system from Qualcomm.</li>
+<li>The interaction channel of satellite communication systems, such as
+DVB-RCS and DVB-RCS2.</li>
+<li>Recent NASA missions such as Mars Reconnaissance Orbiter use turbo
+codes as an alternative to Reed–Solomon error correction -Viterbi
+decoder codes.</li>
+</ol>
+<p>LDPC codes also have lots of applications.</p>
+<ol type="1">
+<li>In 5G NR (New Radio) LDPC codes are used for the data channel.</li>
+<li>satellite transmission</li>
+<li>Ethernet and WiFi</li>
+<li>Even at low bit error rates, some OFDM systems incorporate an extra
+outside error correction that addresses the infrequent errors that slip
+past the LDPC rectification inner code. For instance: A Reed-Solomon
+outer code is used in the Reed-Solomon code with LDPC Coded Modulation
+(RS-LCM). The BCH code outer code is used in the DVB-S2, DVB-T2, and
+DVB-C2 standards to mop up leftover errors following LDPC decoding.</li>
+</ol>
+<p>Polar codes have wide applications in Information theory such as
+Quasi Cyclic LDPC code, Irregular Repeat-Accumulate (IRA) code,
+Spatially Coupled LDPC (SP-LDPC), and NBLDPC Codes described.</p>
+<h2 id="contributions-of-china">Contributions of China</h2>
+<p>China's Huawei company has been developing Polar code for many years
+and has made great achievements in the development of coder and decoder
+of Polar code. Huawei has solved the basic problems of coding
+construction and decoding after two years of research. According to the
+latest public 14 years of technical information, IS selection problems,
+code length problems, decoding algorithms, HARQ, etc. also did not get a
+good solution.</p>
+<p>Huawei has promoted the Polar Code (Polarization Code) scheme as the
+coding scheme for 5G control channel eMBB scenarios which can't be
+separated from China's growing comprehensive national power, as well as
+the communication and coordination of relevant domestic departments - in
+the most critical vote, Huawei's old domestic rival ZTE gave strong
+support, China Telecom, China Mobile, China Unicom, and Datang Telecom
+also chose to support Huawei. This marks a higher voice for Chinese
+communication vendors in the 5G era and reflects the growing strength of
+Chinese communication technology.</p>
+<h2 id="future-tendency">Future tendency</h2>
+<p>5G phones must support at least 4G and 3G networks from a device
+implementation standpoint. Turbo code is used in 3G and 4G, whereas LDPC
+and Polar code have been confirmed for 5G, implying at least three sets
+of coders and decoders on the phone. The baseband processor's coder and
+decoder are critical components. This design will raise the baseband
+processor's load and power consumption, reducing standby time and
+raising the cost of a 5G terminal. Operators' operating equipment, on
+the other hand, is incapable of smoothly transitioning from 4.5G to 5G,
+necessitating investment in new network equipment. which may also delay
+the formal commercial time of 5G.</p>
+<p>Increasing the performance of future wireless systems requires the
+use of increasingly complicated channel codes, and this article outlines
+some of the high-level benefits. The application of Polar code will
+become more and more mature in the future, and there is a chance that
+other coding methods approaching or achieving the Shannon limit will be
+developed.</p>
+<section class="footnotes">
+<div class="footnote-list">
+<ol>
+<li>
+<span id="fn:1"
+class="footnote-text"><span>https://www.youtube.com/watch?v=zYOXFt0Ixwk
+<a href="#fnref:1" rev="footnote" class="footnote-backref">
+↩︎</a></span></span>
+</li>
+</ol>
+</div>
+</section>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/12/12/pd/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">pandas basic</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/10/07/hexo/">
+                        <span class="hidden-mobile">Hexo配置</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        loader: {
+          load: ['ui/lazy']
+        },
+        options: {
+          renderActions: {
+            findScript: [10, doc => {
+              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+                const display = !!node.type.match(/; *mode=display/);
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                const text = document.createTextNode('');
+                node.parentNode.replaceChild(text, node);
+                math.start = { node: text, delim: '', n: 0 };
+                math.end = { node: text, delim: '', n: 0 };
+                doc.math.push(math);
+              });
+            }, '', false],
+            insertedScript: [200, () => {
+              document.querySelectorAll('mjx-container').forEach(node => {
+                let target = node.parentNode;
+                if (target.nodeName.toLowerCase() === 'li') {
+                  target.parentNode.classList.add('has-jax');
+                }
+              });
+            }, '', false]
+          }
+        }
+      };
+    </script>
+
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

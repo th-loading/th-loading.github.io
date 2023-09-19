@@ -1,0 +1,568 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/images/icon.png">
+  <link rel="icon" href="/images/icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="th-loading">
+  <meta name="keywords" content="">
+  <meta name="description" content="前置知识 Y86 esp - rsp 第三版CSAPP全部使用8Byte Y86指令集对应Y86处理器，Sequential operation，每个周期执行一个完整的Y86指令，可以拆分出五个阶段，执行指令流水线（？数字电路的实现） programmer-visible 程序员可见的状态，编译器 &#x2F; 用汇编代码写程序的人，Y86与x86对应的寄存器结构是类似的，栈指针、传参、返回参数、条件码、P">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CS:APP Arch Lab记录">
+<meta property="og:url" content="http://example.com/2023/06/29/arch/index.html">
+<meta property="og:site_name" content="loading">
+<meta property="og:description" content="前置知识 Y86 esp - rsp 第三版CSAPP全部使用8Byte Y86指令集对应Y86处理器，Sequential operation，每个周期执行一个完整的Y86指令，可以拆分出五个阶段，执行指令流水线（？数字电路的实现） programmer-visible 程序员可见的状态，编译器 &#x2F; 用汇编代码写程序的人，Y86与x86对应的寄存器结构是类似的，栈指针、传参、返回参数、条件码、P">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2023/06/29/images/cpu.png">
+<meta property="og:image" content="http://example.com/images/cycle.png">
+<meta property="og:image" content="http://example.com/2023/06/29/images/pipe.png">
+<meta property="og:image" content="http://example.com/2023/06/29/images/diff_pipe.png">
+<meta property="article:published_time" content="2023-06-29T11:23:08.000Z">
+<meta property="article:modified_time" content="2023-09-19T12:04:21.712Z">
+<meta property="article:author" content="th-loading">
+<meta property="article:tag" content="CS">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/2023/06/29/images/cpu.png">
+  
+  <title>CS:APP Arch Lab记录 - loading</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":false,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>loading</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/images/tb.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="CS:APP Arch Lab记录">
+              
+                CS:APP Arch Lab记录
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2023-06-29 19:23" pubdate>
+        2023年6月29日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      17k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      52 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">CS:APP Arch Lab记录</h1>
+            
+            <div class="markdown-body">
+              <h1 id="前置知识">前置知识</h1>
+<h2 id="y86">Y86</h2>
+<p>esp - rsp 第三版CSAPP全部使用8Byte</p>
+<p>Y86指令集对应Y86处理器，Sequential
+operation，每个周期执行一个完整的Y86指令，可以拆分出五个阶段，执行指令流水线（？数字电路的实现）</p>
+<p>programmer-visible 程序员可见的状态，编译器 /
+用汇编代码写程序的人，Y86与x86对应的寄存器结构是类似的，栈指针、传参、返回参数、条件码、PC。</p>
+<p>Y86的汇编指令使用内存虚拟地址，由硬件和操作系统在读入程序时载入。状态码Stat
+异常状态。</p>
+<p>只有8字节的数据，称之为word 字，变长指令字，</p>
+<p>addl, subl, andl, and xorl 对应 ZF, SF, and OF (zero, sign, and
+overflow)</p>
+<h2 id="hcl">HCL</h2>
+<p>硬件控制语言，从逻辑电路图到硬件描述语言，Verilog
+根据描述生成电路，high-level Language。Single
+Bit，高电平表示1，反之表示0，与或非门。基本的对象时逻辑电路，bool eq =
+(a &amp;&amp; b) || (!a &amp;&amp; !b) ，持续响应输入的变化。</p>
+<p>出于简单，每个字集都视为int，有 bool Eq = (A == B)。</p>
+<p>基于设计的存储网络，决定各个存储设备值的组合电路逻辑。</p>
+<h3 id="硬件基础">硬件基础</h3>
+<p>组合电路，不需要时序信息，参考三极管等原件的特性，输入改变自然输出改变。若要生成有顺序的时序电路，需要引入时钟。</p>
+<p>时钟寄存器（区分机器级编程提到的寄存器文件），只有在时钟上升沿才会改变自身的输出，就可以确保数据之间读取改变的先后顺序。</p>
+<p>随机访问存储器（内存+寄存器文件）；在读取时等价于组合电路，只需要输入改变（寻址改变）输出随之改变（对应寄存器的值）；
+在写入时则不同，由一个时钟控制。因此只读存储器，如指令存储器可以看作组合电路。</p>
+<p><img src="../images/cpu.png" srcset="/img/loading.gif" lazyload alt="流程" style="zoom:50%;"  /></p>
+<p>6类操作</p>
+<ol type="1">
+<li>Fetch icode(指令代码) + ifun(指令功能 指导ALU) + (rA rB reg) +
+valp(顺序计算Increment)</li>
+<li>Decode 等价组合逻辑电路 读出ALU A ALU B<br />
+</li>
+<li>Execute ALU运算(参考ifun)，设置条件码（condition code register
+(CC)），ifun给出传送条件</li>
+<li>Memory 写/读 valM</li>
+<li>Write Back 写回存储器</li>
+<li>更新PC</li>
+</ol>
+<p>单个周期内，Y86-64的指令集不会读出现过写的状态。在时钟下，Input
+PC改变，当组合电路稳定之后，因为只取决于上一阶段的值，可以确保同时进行。(写操作需要另外的时钟，这里简化讨论)</p>
+<p><img src="/images/cycle.png" srcset="/img/loading.gif" lazyload alt="Cycle" style="zoom:50%;"  /></p>
+<p>具体而言：</p>
+<p>对条件转移，不会有运算设置完条件码后，直接读取条件码。只有运算后，才另外判断jmp。</p>
+<p>对pushq而言，并不能rsp-8后直接M(rsp)，而应该使用rsp-8得到的valE，直接M(valE)（同时写入rsp)。</p>
+<h3 id="pipeline">Pipeline</h3>
+<p>使用流水线操作，借助时钟使得上个Stage结束的同时，下个Stage正好开始即可（选择每个Stage最长的时间，就可以只用一个统一的时钟。</p>
+<p><img src="../images/pipe.png" srcset="/img/loading.gif" lazyload alt="PIPE" style="zoom:50%;"  /></p>
+<p>比较Seq结构与Pipe结构，虽然单个指令的执行时间甚至更长，但可以同时运行至多三个指令，使得整体的吞吐量更大。流水线需要每个组合逻辑的耗时相同，长链条也使得更有效率的设计更困难(Nonuniform
+Partitioning)流水线链条越长，需要处理的冲突越多，寄存器用于等待的时间也越长(Diminishing
+Returns of Deep Pipelining)</p>
+<p><img src="../images/diff_pipe.png" srcset="/img/loading.gif" lazyload alt="diff" style="zoom:50%;"  /></p>
+<p>Pipeline Hazard 数据冒险 控制冒险</p>
+<p>Stall - 等价于动态生成所需数量的nop指令</p>
+<p>Forward 数据旁路，可以处理寄存器写后读的问题，不能处理
+load/use，读内存在写入阶段才得到操作数。后者依旧使用Stall(load
+interlock)。</p>
+<p>控制冒险，在得到准确的跳转PC前的所有阶段都应该插入nop</p>
+<p>异常处理。</p>
+<h1 id="具体流程">具体流程</h1>
+<h2 id="part-a">Part A</h2>
+<p>汇编程序</p>
+<p>定义出链表的结构</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs assembly"># Sample linked list<br>.align 8<br>ele1:<br>	.quad 0x00a<br>	.quad ele2<br>ele2:<br>	.quad 0x0b0<br>	.quad ele3<br>ele3:<br>	.quad 0xc00<br>	.quad 0<br></code></pre></td></tr></table></figure>
+<p>C语言传参与处理的汇编代码</p>
+<p>main函数内定义</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs c"># C 需要<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Node</span>代表结构体，一般辅助使用<span class="hljs-title">typedef</span> </span><br><span class="hljs-class"><span class="hljs-title">typedef</span> <span class="hljs-keyword">struct</span> <span class="hljs-title">Node</span>&#123;</span><br>    <span class="hljs-type">int</span> v;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Node</span> *<span class="hljs-title">next</span>;</span><br>&#125;Node;<br><br><span class="hljs-type">int</span> <span class="hljs-title function_">add</span><span class="hljs-params">(Node *head)</span> &#123;<br>    <span class="hljs-type">int</span> v = <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">while</span>(head) &#123;<br>        v += head-&gt;v;<br>        head = head-&gt;next; <br>    &#125;<br>&#125;<br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    Node n1, n2, n3;<br>    n1.v = <span class="hljs-number">1</span>, n1.next = &amp;n2, n2.v = <span class="hljs-number">2</span>, n2.next = &amp;n3, n3.v = <span class="hljs-number">3</span>, n3.next = <span class="hljs-number">0</span>;<br>    add(&amp;n1); <br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs assembly"># ATT 格式 x86 <br><br># 申请空间<br>subq	$64, %rsp<br># ? 段保护<br>movq	%fs:40, %rax<br># 占一个8Byte<br>movq	%rax, -8(%rbp)<br># 清 0<br>xorl	%eax, %eax<br><br># n1.v = 1<br>movl	$1, -64(%rbp)<br><br># &amp;n2 -&gt; n1.next<br>leaq	-48(%rbp), %rax<br>movq	%rax, -56(%rbp)<br><br># n2.v = 2, 同时代表&amp;n2<br>movl	$2, -48(%rbp)<br>leaq	-32(%rbp), %rax<br>movq	%rax, -40(%rbp)<br>movl	$3, -32(%rbp)<br>movq	$0, -24(%rbp)<br><br># 传入 &amp;n1<br>leaq	-64(%rbp), %rax<br><br>movq	%rax, %rdi<br></code></pre></td></tr></table></figure>
+<p>全局变量的定义</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Node</span>&#123;</span><br>    <span class="hljs-type">int</span> v;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Node</span> *<span class="hljs-title">next</span>;</span><br>&#125;Node;<br><br>Node n3 = &#123;<span class="hljs-number">3</span>, <span class="hljs-number">0</span>&#125;, n2 = &#123;<span class="hljs-number">2</span>, &amp;n3&#125;, n1 = &#123;<span class="hljs-number">1</span>, &amp;n2&#125;;<br><br><span class="hljs-type">int</span> <span class="hljs-title function_">add</span><span class="hljs-params">(Node *head)</span> &#123;<br>    <span class="hljs-type">int</span> v = <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">while</span>(head) &#123;<br>        v += head-&gt;v;<br>        head = head-&gt;next; <br>    &#125;<br>&#125;<br><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    add(&amp;n1); <br>&#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><code class="hljs assembly">n3:<br>	.long	3<br>	.zero	4<br>	.quad	0<br>	.globl	n2<br>	.section	.data.rel.local,&quot;aw&quot;<br>	.align 16<br>	.type	n2, @object<br>	.size	n2, 16<br>n2:<br>	.long	2<br>	.zero	4<br>	.quad	n3<br>	.globl	n1<br>	.align 16<br>	.type	n1, @object<br>	.size	n1, 16<br>n1:<br>	.long	1<br>	.zero	4<br>	.quad	n2<br>	.text<br>	.globl	add<br>	.type	add, @function<br><br># [rip + a] or AT&amp;T a(%rip) means to calculate a rel32 displacement to reach a<br><br># 代表n1的地址 （指向代码段而不是栈，代表全局变量）<br>leaq	n1(%rip), %rdi<br><br># 后借助8 Byte后的地址完成跳转<br>movq	-24(%rbp), %rax<br>movq	8(%rax), %rax<br></code></pre></td></tr></table></figure>
+<p>ys中都使用全局变量的方式，寻址的方式也较为简单</p>
+<p>注意有INIT的过程，需要手动声明栈大小等。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><code class="hljs assembly"># Sample linked list<br>    .pos 0<br>    irmovq stack, %rsp <br>    call main<br>    halt<br>    <br>    .align 8<br>ele1:<br>	.quad 0x00a<br>	.quad ele2<br>ele2:<br>	.quad 0x0b0<br>	.quad ele3<br>ele3:<br>	.quad 0xc00<br>	.quad 0<br><br>main:<br>    irmovq ele1, %rdx<br>    pushq %rdx<br>    call add<br>    ret<br><br>add:<br>    pushq %rbp<br>    rrmovq %rsp, %rbp<br>    xorq %rax, %rax<br>    mrmovq 16(%rbp), %rcx<br>loop:<br>    andq %rcx, %rcx<br>    je end<br>    mrmovq (%rcx), %rdx<br>    addq %rdx, %rax<br>    mrmovq 8(%rcx), %rcx<br>    jmp loop<br>end: <br>    popq %rbp<br>    ret    <br><br>    .pos 200<br>stack:<br></code></pre></td></tr></table></figure>
+<p>结果</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs routeros">Stopped <span class="hljs-keyword">in</span> 33 steps at PC = 0x18.  Status <span class="hljs-string">&#x27;HLT&#x27;</span>, CC <span class="hljs-attribute">Z</span>=1 <span class="hljs-attribute">S</span>=0 <span class="hljs-attribute">O</span>=0<br>Changes <span class="hljs-keyword">to</span> registers:<br>%rax:   0x0000000000000000      0x0000000000000cba<br></code></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs assembly">main:<br>    irmovq ele1, %rdi<br>    call rsum<br>    ret<br><br>rsum:<br>    xorq %rax, %rax <br>    andq %rdi, %rdi<br>    je end<br>    pushq %rbp<br>    rrmovq %rsp, %rbp <br>    mrmovq (%rdi), %rcx<br>    mrmovq 8(%rdi), %rdi<br>    pushq %rcx<br>    call rsum<br>    popq %rcx<br>    addq %rcx, %rax <br>    rrmovq %rbp, %rsp<br>    popq %rbp<br>end:<br>    ret <br><br># 十进制 200会爆栈<br>    .pos 0x200<br>stack:<br></code></pre></td></tr></table></figure>
+<p>结果：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs routeros">Stopped <span class="hljs-keyword">in</span> 52 steps at PC = 0x13.  Status <span class="hljs-string">&#x27;HLT&#x27;</span>, CC <span class="hljs-attribute">Z</span>=0 <span class="hljs-attribute">S</span>=0 <span class="hljs-attribute">O</span>=0<br>Changes <span class="hljs-keyword">to</span> registers:<br>%rax:   0x0000000000000000      0x0000000000000cba<br></code></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><code class="hljs assembly"># Source block<br>src:<br>    .quad 0x00a<br>    .quad 0x0b0<br>    .quad 0xc00<br><br># Destination block<br>dest:<br>    .quad 0x111<br>    .quad 0x222<br>    .quad 0x333<br><br>copy:<br>    mrmovq 8(%rsp), %rdx<br>    mrmovq 16(%rsp), %rcx<br>    mrmovq 24(%rsp), %rbx<br>    xorq %rax, %rax   <br>loop:<br>    andq %rdx, %rdx<br>    je end<br>    irmovq $-1, %r8<br>    addq %r8, %rdx<br>    mrmovq (%rbx), %r8<br>    xorq %r8, %rax<br>    rmmovq %r8, (%rcx) <br>    irmovq $8, %r8<br>    addq %r8, %rcx<br>    addq %r8, %rbx  <br>    jmp loop<br>end:<br>    ret<br><br>main:<br>    irmovq src, %rdx<br>    pushq %rdx<br>    irmovq dest, %rdx<br>    pushq %rdx<br>    irmovq 0x3, %rdx<br>    pushq %rdx<br>    call copy<br>    ret<br><br>    .pos 0x200<br>stack:<br></code></pre></td></tr></table></figure>
+<p>结果</p>
+<figure class="highlight dns"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs dns">Stopped in <span class="hljs-number">51</span> steps at PC = <span class="hljs-number">0</span>x3.  Status &#x27;HLT&#x27;, CC Z=<span class="hljs-number">1</span> S=<span class="hljs-number">0</span> O=<span class="hljs-number">0</span><br>Changes to registers:<br>%rax:   <span class="hljs-number">0</span>x00000<span class="hljs-number">00000000000</span>      <span class="hljs-number">0</span>x0000000000000cba<br>%rcx:   <span class="hljs-number">0</span>x00000<span class="hljs-number">00000000000</span>      <span class="hljs-number">0</span>x00000<span class="hljs-number">00000000048</span><br>%rbx:   <span class="hljs-number">0</span>x00000<span class="hljs-number">00000000000</span>      <span class="hljs-number">0</span>x00000<span class="hljs-number">00000000030</span><br>%rsp:   <span class="hljs-number">0</span>x00000<span class="hljs-number">00000000000</span>      <span class="hljs-number">0</span>x000000<span class="hljs-number">00000001e8</span><br>%r8:    <span class="hljs-number">0</span>x00000<span class="hljs-number">00000000000</span>      <span class="hljs-number">0</span>x00000<span class="hljs-number">00000000008</span><br><br>Changes to memory:<br><span class="hljs-number">0</span>x0030: <span class="hljs-number">0</span>x0000<span class="hljs-number">000000000111</span>      <span class="hljs-number">0</span>x000000000000000a<br><span class="hljs-number">0</span>x0038: <span class="hljs-number">0</span>x0000<span class="hljs-number">000000000222</span>      <span class="hljs-number">0</span>x000000<span class="hljs-number">00000000b0</span><br><span class="hljs-number">0</span>x0040: <span class="hljs-number">0</span>x00000<span class="hljs-number">00000000333</span>      <span class="hljs-number">0</span>x00000<span class="hljs-number">00000000c00</span><br></code></pre></td></tr></table></figure>
+<h2 id="part-b">Part B</h2>
+<p>只需要在固定的结构中加入操作码即可。</p>
+<figure class="highlight coffeescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br></pre></td><td class="code"><pre><code class="hljs coffeescript"><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">#### Fetch Stage     ###</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">##</span><br><br><span class="hljs-comment"># Determine instruction code</span><br>word icode = [<br>	imem_error: INOP;<br>	<span class="hljs-number">1</span>: imem_icode;		<span class="hljs-comment"># Default: get from instruction memory</span><br>];<br><br><span class="hljs-comment"># Determine instruction function</span><br>word ifun = [<br>	imem_error: FNONE;<br>	<span class="hljs-number">1</span>: imem_ifun;		<span class="hljs-comment"># Default: get from instruction memory</span><br>];<br><br>bool instr_valid = icode <span class="hljs-keyword">in</span> <br>	&#123; INOP, IHALT, IRRMOVQ, IIRMOVQ, IRMMOVQ, IMRMOVQ,<br>	       IOPQ, IJXX, ICALL, IRET, IPUSHQ, IPOPQ, IIADDQ&#125;;<br><br><span class="hljs-comment"># Does fetched instruction require a regid byte?</span><br>bool need_regids =<br>	icode <span class="hljs-keyword">in</span> &#123; IRRMOVQ, IOPQ, IPUSHQ, IPOPQ, <br>		     IIRMOVQ, IRMMOVQ, IMRMOVQ, IIADDQ&#125;;<br><br><span class="hljs-comment"># Does fetched instruction require a constant word?</span><br>bool need_valC =<br>	icode <span class="hljs-keyword">in</span> &#123; IIRMOVQ, IRMMOVQ, IMRMOVQ, IJXX, ICALL, IIADDQ&#125;;<br><br><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">#### Decode Stage    ###</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">##</span><br><br><span class="hljs-comment">## What register should be used as the A source?</span><br>word srcA = [<br>	icode <span class="hljs-keyword">in</span> &#123; IRRMOVQ, IRMMOVQ, IOPQ, IPUSHQ  &#125; : rA;<br>	icode <span class="hljs-keyword">in</span> &#123; IPOPQ, IRET &#125; : RRSP;<br>	<span class="hljs-number">1</span> : RNONE; <span class="hljs-comment"># Don&#x27;t need register</span><br>];<br><br><span class="hljs-comment">## What register should be used as the B source?</span><br>word srcB = [<br>	icode <span class="hljs-keyword">in</span> &#123; IOPQ, IRMMOVQ, IMRMOVQ, IIADDQ&#125; : rB;<br>	icode <span class="hljs-keyword">in</span> &#123; IPUSHQ, IPOPQ, ICALL, IRET &#125; : RRSP;<br>	<span class="hljs-number">1</span> : RNONE;  <span class="hljs-comment"># Don&#x27;t need register</span><br>];<br><br><span class="hljs-comment">## What register should be used as the E destination?</span><br>word dstE = [<br>	icode <span class="hljs-keyword">in</span> &#123; IRRMOVQ &#125; &amp;&amp; Cnd : rB;<br>	icode <span class="hljs-keyword">in</span> &#123; IIRMOVQ, IOPQ, IIADDQ&#125; : rB;<br>	icode <span class="hljs-keyword">in</span> &#123; IPUSHQ, IPOPQ, ICALL, IRET &#125; : RRSP;<br>	<span class="hljs-number">1</span> : RNONE;  <span class="hljs-comment"># Don&#x27;t write any register</span><br>];<br><br><span class="hljs-comment">## What register should be used as the M destination?</span><br>word dstM = [<br>	icode <span class="hljs-keyword">in</span> &#123; IMRMOVQ, IPOPQ &#125; : rA;<br>	<span class="hljs-number">1</span> : RNONE;  <span class="hljs-comment"># Don&#x27;t write any register</span><br>];<br><br><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">#### Execute Stage   ###</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">##</span><br><br><span class="hljs-comment">## Select input A to ALU</span><br>word aluA = [<br>	icode <span class="hljs-keyword">in</span> &#123; IRRMOVQ, IOPQ &#125; : valA;<br>	icode <span class="hljs-keyword">in</span> &#123; IIRMOVQ, IRMMOVQ, IMRMOVQ, IIADDQ &#125; : valC;<br>	icode <span class="hljs-keyword">in</span> &#123; ICALL, IPUSHQ &#125; : <span class="hljs-number">-8</span>;<br>	icode <span class="hljs-keyword">in</span> &#123; IRET, IPOPQ &#125; : <span class="hljs-number">8</span>;<br>	<span class="hljs-comment"># Other instructions don&#x27;t need ALU</span><br>];<br><br><span class="hljs-comment">## Select input B to ALU</span><br>word aluB = [<br>	icode <span class="hljs-keyword">in</span> &#123; IRMMOVQ, IMRMOVQ, IOPQ, ICALL, <br>		      IPUSHQ, IRET, IPOPQ, IIADDQ&#125; : valB;<br>	icode <span class="hljs-keyword">in</span> &#123; IRRMOVQ, IIRMOVQ &#125; : <span class="hljs-number">0</span>;<br>	<span class="hljs-comment"># Other instructions don&#x27;t need ALU</span><br>];<br><br><span class="hljs-comment">## Set the ALU function</span><br>word alufun = [<br>	icode == IOPQ : ifun;<br>	<span class="hljs-number">1</span> : ALUADD;<br>];<br><br><span class="hljs-comment">## Should the condition codes be updated?</span><br>bool set_cc = icode <span class="hljs-keyword">in</span> &#123; IOPQ, IIADDQ&#125;;<br><br><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">#### Memory Stage    ###</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">##</span><br><br><span class="hljs-comment">## Set read control signal</span><br>bool mem_read = icode <span class="hljs-keyword">in</span> &#123; IMRMOVQ, IPOPQ, IRET &#125;;<br><br><span class="hljs-comment">## Set write control signal</span><br>bool mem_write = icode <span class="hljs-keyword">in</span> &#123; IRMMOVQ, IPUSHQ, ICALL &#125;;<br><br><span class="hljs-comment">## Select memory address</span><br>word mem_addr = [<br>	icode <span class="hljs-keyword">in</span> &#123; IRMMOVQ, IPUSHQ, ICALL, IMRMOVQ &#125; : valE;<br>	icode <span class="hljs-keyword">in</span> &#123; IPOPQ, IRET &#125; : valA;<br>	<span class="hljs-comment"># Other instructions don&#x27;t need address</span><br>];<br><br><span class="hljs-comment">## Select memory input data</span><br>word mem_data = [<br>	<span class="hljs-comment"># Value from register</span><br>	icode <span class="hljs-keyword">in</span> &#123; IRMMOVQ, IPUSHQ &#125; : valA;<br>	<span class="hljs-comment"># Return PC</span><br>	icode == ICALL : valP;<br>	<span class="hljs-comment"># Default: Don&#x27;t write anything</span><br>];<br><br><span class="hljs-comment">## Determine instruction status</span><br>word Stat = [<br>	imem_error || dmem_error : SADR;<br>	!instr_valid: SINS;<br>	icode == IHALT : SHLT;<br>	<span class="hljs-number">1</span> : SAOK;<br>];<br><br><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">#### Program Counter Update ###</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">#</span><br><br><span class="hljs-comment">## What address should instruction be fetched at</span><br><br>word new_pc = [<br>	<span class="hljs-comment"># Call.  Use instruction constant</span><br>	icode == ICALL : valC;<br>	<span class="hljs-comment"># Taken branch.  Use instruction constant</span><br>	icode == IJXX &amp;&amp; Cnd : valC;<br>	<span class="hljs-comment"># Completion of RET instruction.  Use value from stack</span><br>	icode == IRET : valM;<br>	<span class="hljs-comment"># Default: Use incremented PC</span><br>	<span class="hljs-number">1</span> : valP;<br>];<br><span class="hljs-comment">#/* $end seq-all-hcl */</span><br></code></pre></td></tr></table></figure>
+<h2 id="part-c">Part C</h2>
+<p>F - D - E - M - W</p>
+<p>对其中设计的存储设备的值的逻辑进行设计。</p>
+<p>基本的流水线操作：Average CPE 15.18</p>
+<p>可以优化的结构：</p>
+<p>Prediction</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><code class="hljs asm">#/* $begin ncopy-ys */<br>##################################################################<br># ncopy.ys - Copy a src block of len words to dst.<br># Return the number of positive words (&gt;0) contained in src.<br>#<br># Include your name and ID here.<br>#<br># Describe how and why you modified the baseline code.<br>#<br>##################################################################<br># Do not modify this portion<br># Function prologue.<br># %rdi = src, %rsi = dst, %rdx = len<br>ncopy:<br><br>##################################################################<br># You can modify this portion<br>	# Loop header<br>	xorq %rax,%rax		# count = 0;<br>	andq %rdx,%rdx		# len &lt;= 0?<br>	jle Done		# if so, goto Done:<br><br>Loop:	<br>    mrmovq (%rdi), %r10	# read val from src...<br>	rmmovq %r10, (%rsi)	# ...and store it to dst<br>	andq %r10, %r10		# val &lt;= 0?<br>	jle Npos		# if so, goto Npos:<br>	irmovq $1, %r10<br>	addq %r10, %rax		# count++<br><br>Npos:<br>	irmovq $1, %r10<br>	subq %r10, %rdx		# len--<br>	irmovq $8, %r10<br>	addq %r10, %rdi		# src++<br>	addq %r10, %rsi		# dst++<br>	andq %rdx,%rdx		# len &gt; 0?<br>	jg Loop			# if so, goto Loop:<br>##################################################################<br># Do not modify the following section of code<br># Function epilogue.<br>Done:<br>	ret<br>##################################################################<br># Keep the following label at the end of your function<br>End:<br>#/* $end ncopy-ys */<br><br></code></pre></td></tr></table></figure>
+<figure class="highlight coffeescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br></pre></td><td class="code"><pre><code class="hljs coffeescript"><span class="hljs-comment">#/* $begin seq-all-hcl */</span><br><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">##</span><br><span class="hljs-comment">#  HCL Description of Control for Single Cycle Y86-64 Processor SEQ   #</span><br><span class="hljs-comment">#  Copyright (C) Randal E. Bryant, David R. O&#x27;Hallaron, 2010       #</span><br><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">##</span><br><br><span class="hljs-comment">## Your task is to implement the iaddq instruction</span><br><span class="hljs-comment">## The file contains a declaration of the icodes</span><br><span class="hljs-comment">## for iaddq (IIADDQ)</span><br><span class="hljs-comment">## Your job is to add the rest of the logic to make it work</span><br><br><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">##</span><br><span class="hljs-comment">#    C Include&#x27;s.  Don&#x27;t alter these                               #</span><br><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">##</span><br><br>quote <span class="hljs-string">&#x27;#include &lt;stdio.h&gt;&#x27;</span><br>quote <span class="hljs-string">&#x27;#include &quot;isa.h&quot;&#x27;</span><br>quote <span class="hljs-string">&#x27;#include &quot;sim.h&quot;&#x27;</span><br>quote <span class="hljs-string">&#x27;int sim_main(int argc, char *argv[]);&#x27;</span><br>quote <span class="hljs-string">&#x27;word_t gen_pc()&#123;return 0;&#125;&#x27;</span><br>quote <span class="hljs-string">&#x27;int main(int argc, char *argv[])&#x27;</span><br>quote <span class="hljs-string">&#x27;  &#123;plusmode=0;return sim_main(argc,argv);&#125;&#x27;</span><br><br><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">##</span><br><span class="hljs-comment">#    Declarations.  Do not change/remove/delete any of these       #</span><br><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">##</span><br><br><span class="hljs-comment">##### Symbolic representation of Y86-64 Instruction Codes ###</span><span class="hljs-comment">######</span><span class="hljs-comment">####</span><br><span class="hljs-comment">wordsig INOP 	&#x27;I_NOP&#x27;</span><br><span class="hljs-comment">wordsig IHALT	&#x27;I_HALT&#x27;</span><br><span class="hljs-comment">wordsig IRRMOVQ	&#x27;I_RRMOVQ&#x27;</span><br><span class="hljs-comment">wordsig IIRMOVQ	&#x27;I_IRMOVQ&#x27;</span><br><span class="hljs-comment">wordsig IRMMOVQ	&#x27;I_RMMOVQ&#x27;</span><br><span class="hljs-comment">wordsig IMRMOVQ	&#x27;I_MRMOVQ&#x27;</span><br><span class="hljs-comment">wordsig IOPQ	&#x27;I_ALU&#x27;</span><br><span class="hljs-comment">wordsig IJXX	&#x27;I_JMP&#x27;</span><br><span class="hljs-comment">wordsig ICALL	&#x27;I_CALL&#x27;</span><br><span class="hljs-comment">wordsig IRET	&#x27;I_RET&#x27;</span><br><span class="hljs-comment">wordsig IPUSHQ	&#x27;I_PUSHQ&#x27;</span><br><span class="hljs-comment">wordsig IPOPQ	&#x27;I_POPQ&#x27;</span><br><span class="hljs-comment"># Instruction code for iaddq instruction</span><br><span class="hljs-comment">wordsig IIADDQ	&#x27;I_IADDQ&#x27;</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">###</span><span class="hljs-comment">## Symbolic represenations of Y86-64 function codes                  #####</span><br>wordsig FNONE    <span class="hljs-string">&#x27;F_NONE&#x27;</span>        <span class="hljs-comment"># Default function code</span><br><br><span class="hljs-comment">##### Symbolic representation of Y86-64 Registers referenced explicitly ###</span><span class="hljs-comment">##</span><br>wordsig RRSP     <span class="hljs-string">&#x27;REG_RSP&#x27;</span>    	<span class="hljs-comment"># Stack Pointer</span><br>wordsig RNONE    <span class="hljs-string">&#x27;REG_NONE&#x27;</span>   	<span class="hljs-comment"># Special value indicating &quot;no register&quot;</span><br><br><span class="hljs-comment">##### ALU Functions referenced explicitly                            ###</span><span class="hljs-comment">##</span><br>wordsig ALUADD	<span class="hljs-string">&#x27;A_ADD&#x27;</span>		<span class="hljs-comment"># ALU should add its arguments</span><br><br><span class="hljs-comment">##### Possible instruction status values                             ###</span><span class="hljs-comment">##</span><br>wordsig SAOK	<span class="hljs-string">&#x27;STAT_AOK&#x27;</span>	<span class="hljs-comment"># Normal execution</span><br>wordsig SADR	<span class="hljs-string">&#x27;STAT_ADR&#x27;</span>	<span class="hljs-comment"># Invalid memory address</span><br>wordsig SINS	<span class="hljs-string">&#x27;STAT_INS&#x27;</span>	<span class="hljs-comment"># Invalid instruction</span><br>wordsig SHLT	<span class="hljs-string">&#x27;STAT_HLT&#x27;</span>	<span class="hljs-comment"># Halt instruction encountered</span><br><br><span class="hljs-comment">##### Signals that can be referenced by control logic ###</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">#####</span><br><span class="hljs-comment"></span><br><span class="hljs-comment">###</span><span class="hljs-comment">## Fetch stage inputs		#####</span><br>wordsig pc <span class="hljs-string">&#x27;pc&#x27;</span>				<span class="hljs-comment"># Program counter</span><br><span class="hljs-comment">##### Fetch stage computations		###</span><span class="hljs-comment">##</span><br>wordsig imem_icode <span class="hljs-string">&#x27;imem_icode&#x27;</span>		<span class="hljs-comment"># icode field from instruction memory</span><br>wordsig imem_ifun  <span class="hljs-string">&#x27;imem_ifun&#x27;</span> 		<span class="hljs-comment"># ifun field from instruction memory</span><br>wordsig icode	  <span class="hljs-string">&#x27;icode&#x27;</span>		<span class="hljs-comment"># Instruction control code</span><br>wordsig ifun	  <span class="hljs-string">&#x27;ifun&#x27;</span>		<span class="hljs-comment"># Instruction function</span><br>wordsig rA	  <span class="hljs-string">&#x27;ra&#x27;</span>			<span class="hljs-comment"># rA field from instruction</span><br>wordsig rB	  <span class="hljs-string">&#x27;rb&#x27;</span>			<span class="hljs-comment"># rB field from instruction</span><br>wordsig valC	  <span class="hljs-string">&#x27;valc&#x27;</span>		<span class="hljs-comment"># Constant from instruction</span><br>wordsig valP	  <span class="hljs-string">&#x27;valp&#x27;</span>		<span class="hljs-comment"># Address of following instruction</span><br>boolsig imem_error <span class="hljs-string">&#x27;imem_error&#x27;</span>		<span class="hljs-comment"># Error signal from instruction memory</span><br>boolsig instr_valid <span class="hljs-string">&#x27;instr_valid&#x27;</span>	<span class="hljs-comment"># Is fetched instruction valid?</span><br><br><span class="hljs-comment">##### Decode stage computations		###</span><span class="hljs-comment">##</span><br>wordsig valA	<span class="hljs-string">&#x27;vala&#x27;</span>			<span class="hljs-comment"># Value from register A port</span><br>wordsig valB	<span class="hljs-string">&#x27;valb&#x27;</span>			<span class="hljs-comment"># Value from register B port</span><br><br><span class="hljs-comment">##### Execute stage computations	###</span><span class="hljs-comment">##</span><br>wordsig valE	<span class="hljs-string">&#x27;vale&#x27;</span>			<span class="hljs-comment"># Value computed by ALU</span><br>boolsig Cnd	<span class="hljs-string">&#x27;cond&#x27;</span>			<span class="hljs-comment"># Branch test</span><br><br><span class="hljs-comment">##### Memory stage computations		###</span><span class="hljs-comment">##</span><br>wordsig valM	<span class="hljs-string">&#x27;valm&#x27;</span>			<span class="hljs-comment"># Value read from memory</span><br>boolsig dmem_error <span class="hljs-string">&#x27;dmem_error&#x27;</span>		<span class="hljs-comment"># Error signal from data memory</span><br><br><br><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">##</span><br><span class="hljs-comment">#    Control Signal Definitions.                                   #</span><br><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">##</span><br><br><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">#### Fetch Stage     ###</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">##</span><br><br><span class="hljs-comment"># Determine instruction code</span><br>word icode = [<br>	imem_error: INOP;<br>	<span class="hljs-number">1</span>: imem_icode;		<span class="hljs-comment"># Default: get from instruction memory</span><br>];<br><br><span class="hljs-comment"># Determine instruction function</span><br>word ifun = [<br>	imem_error: FNONE;<br>	<span class="hljs-number">1</span>: imem_ifun;		<span class="hljs-comment"># Default: get from instruction memory</span><br>];<br><br>bool instr_valid = icode <span class="hljs-keyword">in</span> <br>	&#123; INOP, IHALT, IRRMOVQ, IIRMOVQ, IRMMOVQ, IMRMOVQ,<br>	       IOPQ, IJXX, ICALL, IRET, IPUSHQ, IPOPQ, IIADDQ&#125;;<br><br><span class="hljs-comment"># Does fetched instruction require a regid byte?</span><br>bool need_regids =<br>	icode <span class="hljs-keyword">in</span> &#123; IRRMOVQ, IOPQ, IPUSHQ, IPOPQ, <br>		     IIRMOVQ, IRMMOVQ, IMRMOVQ, IIADDQ&#125;;<br><br><span class="hljs-comment"># Does fetched instruction require a constant word?</span><br>bool need_valC =<br>	icode <span class="hljs-keyword">in</span> &#123; IIRMOVQ, IRMMOVQ, IMRMOVQ, IJXX, ICALL, IIADDQ&#125;;<br><br><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">#### Decode Stage    ###</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">##</span><br><br><span class="hljs-comment">## What register should be used as the A source?</span><br>word srcA = [<br>	icode <span class="hljs-keyword">in</span> &#123; IRRMOVQ, IRMMOVQ, IOPQ, IPUSHQ  &#125; : rA;<br>	icode <span class="hljs-keyword">in</span> &#123; IPOPQ, IRET &#125; : RRSP;<br>	<span class="hljs-number">1</span> : RNONE; <span class="hljs-comment"># Don&#x27;t need register</span><br>];<br><br><span class="hljs-comment">## What register should be used as the B source?</span><br>word srcB = [<br>	icode <span class="hljs-keyword">in</span> &#123; IOPQ, IRMMOVQ, IMRMOVQ, IIADDQ&#125; : rB;<br>	icode <span class="hljs-keyword">in</span> &#123; IPUSHQ, IPOPQ, ICALL, IRET &#125; : RRSP;<br>	<span class="hljs-number">1</span> : RNONE;  <span class="hljs-comment"># Don&#x27;t need register</span><br>];<br><br><span class="hljs-comment">## What register should be used as the E destination?</span><br>word dstE = [<br>	icode <span class="hljs-keyword">in</span> &#123; IRRMOVQ &#125; &amp;&amp; Cnd : rB;<br>	icode <span class="hljs-keyword">in</span> &#123; IIRMOVQ, IOPQ, IIADDQ&#125; : rB;<br>	icode <span class="hljs-keyword">in</span> &#123; IPUSHQ, IPOPQ, ICALL, IRET &#125; : RRSP;<br>	<span class="hljs-number">1</span> : RNONE;  <span class="hljs-comment"># Don&#x27;t write any register</span><br>];<br><br><span class="hljs-comment">## What register should be used as the M destination?</span><br>word dstM = [<br>	icode <span class="hljs-keyword">in</span> &#123; IMRMOVQ, IPOPQ &#125; : rA;<br>	<span class="hljs-number">1</span> : RNONE;  <span class="hljs-comment"># Don&#x27;t write any register</span><br>];<br><br><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">#### Execute Stage   ###</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">##</span><br><br><span class="hljs-comment">## Select input A to ALU</span><br>word aluA = [<br>	icode <span class="hljs-keyword">in</span> &#123; IRRMOVQ, IOPQ &#125; : valA;<br>	icode <span class="hljs-keyword">in</span> &#123; IIRMOVQ, IRMMOVQ, IMRMOVQ, IIADDQ &#125; : valC;<br>	icode <span class="hljs-keyword">in</span> &#123; ICALL, IPUSHQ &#125; : <span class="hljs-number">-8</span>;<br>	icode <span class="hljs-keyword">in</span> &#123; IRET, IPOPQ &#125; : <span class="hljs-number">8</span>;<br>	<span class="hljs-comment"># Other instructions don&#x27;t need ALU</span><br>];<br><br><span class="hljs-comment">## Select input B to ALU</span><br>word aluB = [<br>	icode <span class="hljs-keyword">in</span> &#123; IRMMOVQ, IMRMOVQ, IOPQ, ICALL, <br>		      IPUSHQ, IRET, IPOPQ, IIADDQ&#125; : valB;<br>	icode <span class="hljs-keyword">in</span> &#123; IRRMOVQ, IIRMOVQ &#125; : <span class="hljs-number">0</span>;<br>	<span class="hljs-comment"># Other instructions don&#x27;t need ALU</span><br>];<br><br><span class="hljs-comment">## Set the ALU function</span><br>word alufun = [<br>	icode == IOPQ : ifun;<br>	<span class="hljs-number">1</span> : ALUADD;<br>];<br><br><span class="hljs-comment">## Should the condition codes be updated?</span><br>bool set_cc = icode <span class="hljs-keyword">in</span> &#123; IOPQ, IIADDQ&#125;;<br><br><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">#### Memory Stage    ###</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">##</span><br><br><span class="hljs-comment">## Set read control signal</span><br>bool mem_read = icode <span class="hljs-keyword">in</span> &#123; IMRMOVQ, IPOPQ, IRET &#125;;<br><br><span class="hljs-comment">## Set write control signal</span><br>bool mem_write = icode <span class="hljs-keyword">in</span> &#123; IRMMOVQ, IPUSHQ, ICALL &#125;;<br><br><span class="hljs-comment">## Select memory address</span><br>word mem_addr = [<br>	icode <span class="hljs-keyword">in</span> &#123; IRMMOVQ, IPUSHQ, ICALL, IMRMOVQ &#125; : valE;<br>	icode <span class="hljs-keyword">in</span> &#123; IPOPQ, IRET &#125; : valA;<br>	<span class="hljs-comment"># Other instructions don&#x27;t need address</span><br>];<br><br><span class="hljs-comment">## Select memory input data</span><br>word mem_data = [<br>	<span class="hljs-comment"># Value from register</span><br>	icode <span class="hljs-keyword">in</span> &#123; IRMMOVQ, IPUSHQ &#125; : valA;<br>	<span class="hljs-comment"># Return PC</span><br>	icode == ICALL : valP;<br>	<span class="hljs-comment"># Default: Don&#x27;t write anything</span><br>];<br><br><span class="hljs-comment">## Determine instruction status</span><br>word Stat = [<br>	imem_error || dmem_error : SADR;<br>	!instr_valid: SINS;<br>	icode == IHALT : SHLT;<br>	<span class="hljs-number">1</span> : SAOK;<br>];<br><br><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">#### Program Counter Update ###</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">######</span><span class="hljs-comment">#</span><br><br><span class="hljs-comment">## What address should instruction be fetched at</span><br><br>word new_pc = [<br>	<span class="hljs-comment"># Call.  Use instruction constant</span><br>	icode == ICALL : valC;<br>	<span class="hljs-comment"># Taken branch.  Use instruction constant</span><br>	icode == IJXX &amp;&amp; Cnd : valC;<br>	<span class="hljs-comment"># Completion of RET instruction.  Use value from stack</span><br>	icode == IRET : valM;<br>	<span class="hljs-comment"># Default: Use incremented PC</span><br>	<span class="hljs-number">1</span> : valP;<br>];<br><span class="hljs-comment">#/* $end seq-all-hcl */</span><br><br></code></pre></td></tr></table></figure>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/CS/">CS</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/07/05/shell/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">CS:APP Shell Lab记录</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/06/27/cache/">
+                        <span class="hidden-mobile">CS:APP Cache Lab记录</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        loader: {
+          load: ['ui/lazy']
+        },
+        options: {
+          renderActions: {
+            findScript: [10, doc => {
+              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+                const display = !!node.type.match(/; *mode=display/);
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                const text = document.createTextNode('');
+                node.parentNode.replaceChild(text, node);
+                math.start = { node: text, delim: '', n: 0 };
+                math.end = { node: text, delim: '', n: 0 };
+                doc.math.push(math);
+              });
+            }, '', false],
+            insertedScript: [200, () => {
+              document.querySelectorAll('mjx-container').forEach(node => {
+                let target = node.parentNode;
+                if (target.nodeName.toLowerCase() === 'li') {
+                  target.parentNode.classList.add('has-jax');
+                }
+              });
+            }, '', false]
+          }
+        }
+      };
+    </script>
+
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

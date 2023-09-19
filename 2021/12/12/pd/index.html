@@ -1,0 +1,552 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/images/icon.png">
+  <link rel="icon" href="/images/icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="th-loading">
+  <meta name="keywords" content="">
+  <meta name="description" content="Pandas 1import pandas as pd cat basic 123456789101112131415161718192021222324252627282930313233343536373839404142434445df.loc[&amp;#x27;a&amp;#x27;], df[&amp;#x27;a&amp;#x27;], df.at() ,df[[&amp;#x27;a&amp;#x27;]](as datafra">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pandas basic">
+<meta property="og:url" content="http://example.com/2021/12/12/pd/index.html">
+<meta property="og:site_name" content="loading">
+<meta property="og:description" content="Pandas 1import pandas as pd cat basic 123456789101112131415161718192021222324252627282930313233343536373839404142434445df.loc[&amp;#x27;a&amp;#x27;], df[&amp;#x27;a&amp;#x27;], df.at() ,df[[&amp;#x27;a&amp;#x27;]](as datafra">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-12-12T01:55:24.000Z">
+<meta property="article:modified_time" content="2023-09-19T12:04:21.712Z">
+<meta property="article:author" content="th-loading">
+<meta property="article:tag" content="Machine Learning">
+<meta name="twitter:card" content="summary_large_image">
+  
+  <title>pandas basic - loading</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":false,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>loading</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/images/tb.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="pandas basic">
+              
+                pandas basic
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-12-12 09:55" pubdate>
+        2021年12月12日 上午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      14k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      45 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">pandas basic</h1>
+            
+            <div class="markdown-body">
+              <h1 id="pandas">Pandas</h1>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> pandas <span class="hljs-keyword">as</span> pd<br></code></pre></td></tr></table></figure>
+<h2 id="cat">cat</h2>
+<h3 id="basic">basic</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><code class="hljs python">df.loc[<span class="hljs-string">&#x27;a&#x27;</span>], df[<span class="hljs-string">&#x27;a&#x27;</span>], df.at() ,df[[<span class="hljs-string">&#x27;a&#x27;</span>]](<span class="hljs-keyword">as</span> dataframe)<br><span class="hljs-comment"># iloc series df.iloc[-1,] too many index</span><br>df.iloc[<span class="hljs-number">1</span>] , df[[<span class="hljs-number">1</span>,<span class="hljs-number">2</span>]], df.iat()<br>df.head() , df.tail(), df.sample(n=<span class="hljs-number">1</span>)<br>df.shape(), <span class="hljs-built_in">len</span>(df.columns),<br><span class="hljs-comment"># 最近n天</span><br>df.rolling()<br><span class="hljs-comment"># 至今 	</span><br>df.expanding()<br><span class="hljs-comment"># -a 下a行</span><br>df.shift()<br><span class="hljs-comment">#type</span><br>df.dtypes()<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">show_basic</span>(<span class="hljs-params">df</span>):<br>    <span class="hljs-built_in">print</span>(df.columns)<br>    <span class="hljs-comment"># type and nums</span><br>    <span class="hljs-built_in">print</span>(df.info())<br>    <span class="hljs-comment"># unique of type</span><br>    <span class="hljs-built_in">print</span>(df.describe(include=<span class="hljs-string">&#x27;O&#x27;</span>))<br>    <span class="hljs-comment"># 查看最常见的值</span><br>    <span class="hljs-built_in">print</span>(df.mode())<br>    <span class="hljs-comment"># series -&gt; 增加25-75</span><br>    <span class="hljs-built_in">print</span>(df.describe())<br>    <br><span class="hljs-comment"># 分别查看每一列的数据</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">cat_df</span>(<span class="hljs-params">df</span>):<br>    <span class="hljs-keyword">for</span> column <span class="hljs-keyword">in</span> <span class="hljs-built_in">list</span>(df.columns):<br>        <span class="hljs-built_in">print</span>(df[column].head(<span class="hljs-number">5</span>))<br><br><span class="hljs-comment"># 查看相关系数矩阵</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">cat_cov</span>(<span class="hljs-params">df</span>):<br>    fig,ax = plt.subplots()<br>    matrix = df.corr()<br>    ax = sns.heatmap(matrix)<br>    plt.show()   <br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">show_unique</span>(<span class="hljs-params">df</span>):<br><span class="hljs-comment"># 沿着axis查看有多少unique</span><br><span class="hljs-comment"># 查看每列的类型数</span><br>    df.nunique(axis=<span class="hljs-number">0</span>)<br>    <span class="hljs-built_in">len</span>(pd.unique(series))<br><br><span class="hljs-comment"># equal</span><br>df.equals(exactly_equal)<br></code></pre></td></tr></table></figure>
+<h3 id="print-option">print option</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs python">pd.set_option(<span class="hljs-string">&#x27;max_rows&#x27;</span>, <span class="hljs-number">100</span>)<br>pd.set_option(<span class="hljs-string">&quot;max_columns&quot;</span>, <span class="hljs-number">50</span>)<br><span class="hljs-comment"># 一直延申</span><br>pd.set_option(<span class="hljs-string">&quot;expand_frame_repr&quot;</span>, <span class="hljs-literal">False</span>)<br></code></pre></td></tr></table></figure>
+<h3 id="condition">condition</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># dict </span><br>dp[<span class="hljs-string">&#x27;wts&#x27;</span>][dict_.keys()] = dict_.values()<br><span class="hljs-comment"># 保留非nan </span><br>dp = dp[~np.isnan(dp[<span class="hljs-string">&#x27;wts&#x27;</span>])]<br><span class="hljs-comment"># select column </span><br>df.<span class="hljs-built_in">filter</span>(regex=(<span class="hljs-string">&quot;d.*&quot;</span>))<br><span class="hljs-comment"># loc </span><br>df.loc[mask,<span class="hljs-string">&#x27;column&#x27;</span>]<br><span class="hljs-comment"># mask</span><br><span class="hljs-comment"># 查看(notnull)</span><br>mask_1 = df.isnull()<br><span class="hljs-comment"># 不等式</span><br>mask_2 = train_df.PassengerId &lt; <span class="hljs-number">7</span><br><span class="hljs-comment"># regex</span><br>mask_3 = Series.<span class="hljs-built_in">str</span>.contains(pat, <span class="hljs-keyword">case</span>=<span class="hljs-literal">True</span>, flags=re.I, na=<span class="hljs-literal">None</span>, regex=<span class="hljs-literal">True</span>)<br><span class="hljs-comment"># 合并</span><br>mask = mask_1 &amp; mask_2 &amp; mask_3<br><span class="hljs-comment"># 取值</span><br>null_df = df[mask].loc[:,[column_list]]<br><span class="hljs-comment"># 根据index</span><br>df.loc[date:]<br></code></pre></td></tr></table></figure>
+<h3 id="extract">extract</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs python">dataset[<span class="hljs-string">&#x27;Title&#x27;</span>] = dataset.Name.<span class="hljs-built_in">str</span>.extract(<span class="hljs-string">&#x27; ([A-Za-z]+)\.&#x27;</span>, expand=<span class="hljs-literal">False</span>)<br></code></pre></td></tr></table></figure>
+<h3 id="group">group</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># create group</span><br><span class="hljs-comment"># function (index)</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">func</span>(<span class="hljs-params">idx</span>):<br>    <span class="hljs-comment"># df global value</span><br>    <span class="hljs-keyword">if</span> df.loc[idx] &gt; <span class="hljs-number">0</span>:<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;bar&#x27;</span><br>    <span class="hljs-keyword">else</span>:<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;A&#x27;</span><br>grouped = df.groupby(func,axis=<span class="hljs-number">1</span>,dropna=<span class="hljs-literal">False</span>)<br><span class="hljs-comment"># dict name -&gt; group</span><br>grouped.groups<br><span class="hljs-comment"># 命名</span><br>grouped = ts.groupby(<span class="hljs-keyword">lambda</span> x: x.year)<br>grouped.get_group(<span class="hljs-string">&quot;bar&quot;</span>) 	<br><span class="hljs-comment"># apply calculate</span><br><span class="hljs-comment"># aggregate</span><br>grouped.aggregate([np.<span class="hljs-built_in">sum</span>,np.mean,<span class="hljs-keyword">lambda</span> x : x.<span class="hljs-built_in">sum</span>() - x.mean()])<br><br>grouped.agg(<br>     <span class="hljs-comment"># name = column + function</span><br>     min_height=(<span class="hljs-string">&quot;height&quot;</span>, <span class="hljs-string">&quot;min&quot;</span>),<br>     max_height=(<span class="hljs-string">&quot;height&quot;</span>, <span class="hljs-string">&quot;max&quot;</span>),<br>     average_weight=(<span class="hljs-string">&quot;weight&quot;</span>, np.mean),<br>)<br><span class="hljs-comment"># using a dict on a Series for aggregation is deprecated and will be removed in a future version</span><br><span class="hljs-comment"># 对于series</span><br>grouped.agg(<span class="hljs-built_in">dict</span>&#123;column:func&#125;)<br><span class="hljs-comment"># apply</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">get_mas</span>(<span class="hljs-params">x</span>):<br>    d = &#123;&#125;<br>    d[<span class="hljs-string">&#x27;ma_5&#x27;</span>] = x.iloc[-<span class="hljs-number">5</span>:].mean()<br>    d[<span class="hljs-string">&#x27;ma_10&#x27;</span>] = x.iloc[-<span class="hljs-number">10</span>:].mean()<br>    d[<span class="hljs-string">&#x27;ma_20&#x27;</span>] = x.mean()<br>    <span class="hljs-keyword">return</span> pd.Series(d, index=[<span class="hljs-string">&#x27;ma_5&#x27;</span>, <span class="hljs-string">&#x27;ma_10&#x27;</span>, <span class="hljs-string">&#x27;ma_20&#x27;</span>])<br><br>target = price_df.close.groupby(price_df.index).apply(get_mas)<br><span class="hljs-comment"># multi-index </span><br><span class="hljs-comment"># 根据等级</span><br>s.unstack(level=<span class="hljs-number">1</span>)<br><span class="hljs-comment"># transform</span><br>grouped.transform(func)<br></code></pre></td></tr></table></figure>
+<h3 id="cross_tab">cross_tab</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs python">pd.crosstab(<br>	df[<span class="hljs-string">&#x27;Title&#x27;</span>], df[label]<br>).apply(<br>	<span class="hljs-keyword">lambda</span> r: r/r.<span class="hljs-built_in">sum</span>(), axis=<span class="hljs-number">1</span><br>)<br></code></pre></td></tr></table></figure>
+<h3 id="count">count</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># count_by_value</span><br><span class="hljs-comment"># frequency</span><br>s.value_counts(normalize=<span class="hljs-literal">True</span>)<br><span class="hljs-comment"># 区间统计 </span><br>s.value_counts(bins=<span class="hljs-number">3</span>)<br><span class="hljs-comment"># 包括nan</span><br>s.value_counts(dropna=<span class="hljs-literal">False</span>)<br><span class="hljs-comment"># count 统计</span><br>df.groupby(<span class="hljs-string">&#x27;a&#x27;</span>).count()<br></code></pre></td></tr></table></figure>
+<h3 id="cut">cut</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># cut by quantity</span><br>df[new_column_name] = pd.qcut(df[num_column[index]],bins)<br><br><span class="hljs-comment"># cut by section</span><br>df[new_column_name] = pd.cut(df[num_column[index]],bins)<br></code></pre></td></tr></table></figure>
+<h3 id="quantile">quantile</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># 获取数据的分位点</span><br><span class="hljs-comment"># quartile - quantile - percentile</span><br>df.quantile(ratio_list)<br><br></code></pre></td></tr></table></figure>
+<h2 id="change">change</h2>
+<h3 id="copy">copy</h3>
+<p>df[] 用于查看, 改变值使用df.loc df.loc[:,
+columns]的改变无法直接inplace 应该使用df.loc[:, columns]接收
+！！！赋值使用df.values</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># default deep=True</span><br>df.copy()<br><span class="hljs-comment"># 全部由numpy形成的pd则无需深拷贝</span><br><span class="hljs-comment"># loc条件</span><br></code></pre></td></tr></table></figure>
+<h3 id="concat">Concat</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># 默认用nan填充</span><br>pd.concat(<span class="hljs-built_in">list</span>, axis)<br><span class="hljs-comment"># 用自定义的值定义</span><br>pd.reindex(df1.index,columns=<span class="hljs-built_in">list</span>,fill_value = <span class="hljs-string">&#x27;None&#x27;</span>)<br><span class="hljs-comment">#只在有交集的部分导入</span><br>pd.concat(<span class="hljs-built_in">list</span>, axis, join=<span class="hljs-string">&quot;inner&quot;</span>)<br><span class="hljs-comment">#shortcat df.join , df.append</span><br>df = df1.join(df2)<br><br><span class="hljs-comment"># merge by index</span><br>new_df = pd.merge(<br>    a,b,<br>    how=<span class="hljs-string">&#x27;inner&#x27;</span>,<br>    <span class="hljs-comment"># on = &#x27;column&#x27;</span><br>    left_index=<span class="hljs-literal">True</span>,<br>    right_index=<span class="hljs-literal">True</span><br>)<br></code></pre></td></tr></table></figure>
+<h3 id="update">update</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment">#Modify in place using non-NA values from another DataFrame.</span><br>df.update(new_df)<br><span class="hljs-comment"># Update null elements with value in the same location in other.</span><br>df1.combine_first(df2)<br></code></pre></td></tr></table></figure>
+<h3 id="resample">resample</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># date_range 设置index</span><br>index = pd.date_range(<span class="hljs-string">&#x27;1/1/2000&#x27;</span>, periods=<span class="hljs-number">9</span>, freq=<span class="hljs-string">&#x27;T&#x27;</span>)<br><span class="hljs-comment"># 转换类型</span><br>pd.to_datetime()<br><br><span class="hljs-comment"># resample 根据freq处理数据</span><br><span class="hljs-comment"># label选择右标题</span><br>series.resample(freq, label=<span class="hljs-string">&#x27;right&#x27;</span>).<span class="hljs-built_in">sum</span>()<br><span class="hljs-comment"># 不包括右标题本身 </span><br>series.resample(<span class="hljs-string">&#x27;3T&#x27;</span>, label=<span class="hljs-string">&#x27;right&#x27;</span>, closed=<span class="hljs-string">&#x27;right&#x27;</span>).<span class="hljs-built_in">sum</span>()<br><br><span class="hljs-comment"># as_freq 重新设置freq留出NAN</span><br>df.asfreq(freq=<span class="hljs-string">&#x27;30S&#x27;</span>, fill_value=<span class="hljs-number">9.0</span>, method=fill_method)<br><br><span class="hljs-comment"># 设置index</span><br>df.resample(<span class="hljs-string">&#x27;M&#x27;</span>, on=<span class="hljs-string">&#x27;week_starting&#x27;</span>).mean()<br><br><span class="hljs-comment"># 标准日期</span><br>pd.offsets.timedelta(days=-<span class="hljs-number">6</span>)<br><span class="hljs-comment"># 调整index</span><br>delta = pd.timedelta(days=-<span class="hljs-number">6</span>)<br>df.index = df.index + delta<br><br><span class="hljs-comment"># 调整数据</span><br>logic = &#123;<span class="hljs-string">&#x27;Open&#x27;</span>  : <span class="hljs-string">&#x27;first&#x27;</span>,<br>         <span class="hljs-string">&#x27;High&#x27;</span>  : <span class="hljs-string">&#x27;max&#x27;</span>,<br>         <span class="hljs-string">&#x27;Low&#x27;</span>   : <span class="hljs-string">&#x27;min&#x27;</span>,<br>         <span class="hljs-string">&#x27;Close&#x27;</span> : <span class="hljs-string">&#x27;last&#x27;</span>,<br>         <span class="hljs-string">&#x27;Volume&#x27;</span>: <span class="hljs-string">&#x27;sum&#x27;</span>&#125;<br><br><span class="hljs-comment"># 调整至周一...</span><br><span class="hljs-built_in">print</span>(df_index.index[<span class="hljs-number">0</span>].weekday())<br>df_sales.resample(<span class="hljs-string">&#x27;2H&#x27;</span>, base=<span class="hljs-number">1</span>).<span class="hljs-built_in">sum</span>()<br><br>new_df = df.resample(<span class="hljs-string">&#x27;W&#x27;</span>,label=<span class="hljs-string">&#x27;left&#x27;</span>).apply(logic)<br>delta = pd.Timedelta(days=<span class="hljs-number">1</span>)<br>new_df.index = new_df.index + delta<br></code></pre></td></tr></table></figure>
+<p><a href=https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#timeseries-offset-aliases>freqlist</a></p>
+<h3 id="fill">fill</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><code class="hljs python"><br><span class="hljs-keyword">from</span> scipy.interpolate <span class="hljs-keyword">import</span> interp1d<br><span class="hljs-keyword">from</span> sklearn.metrics <span class="hljs-keyword">import</span> mean_squared_error<br><br>df.interpolate(method=<span class="hljs-string">&#x27;cubicspline&#x27;</span>)<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">fill_matrix</span>(<span class="hljs-params">df,target_col,origin_df=<span class="hljs-literal">None</span></span>):<br>    fig, axes = plt.subplots(<span class="hljs-number">7</span>, <span class="hljs-number">1</span>, sharex=<span class="hljs-literal">True</span>, figsize=(<span class="hljs-number">10</span>, <span class="hljs-number">12</span>))<br>    plt.rcParams.update(&#123;<span class="hljs-string">&#x27;xtick.bottom&#x27;</span> : <span class="hljs-literal">False</span>&#125;)<br><br>    df.plot(title=<span class="hljs-string">&#x27;Actual&#x27;</span>, ax=axes[<span class="hljs-number">0</span>], label=<span class="hljs-string">&#x27;Actual&#x27;</span>, color=<span class="hljs-string">&#x27;green&#x27;</span>, style=<span class="hljs-string">&quot;.-&quot;</span>)    <br>    axes[<span class="hljs-number">0</span>].legend([<span class="hljs-string">&quot;Missing Data&quot;</span>, <span class="hljs-string">&quot;Available Data&quot;</span>])<br>    <br>    df_ffill = df.ffill()<br>    df_ffill[target_col].plot(title=<span class="hljs-string">&#x27;Forward Fill&#x27;</span>, ax=axes[<span class="hljs-number">1</span>], label=<span class="hljs-string">&#x27;Forward Fill&#x27;</span>, style=<span class="hljs-string">&quot;.-&quot;</span>)<br>    <br>    df_bfill = df.bfill()<br>    df_bfill[target_col].plot(title=<span class="hljs-string">&quot;Backward Fill&quot;</span>, ax=axes[<span class="hljs-number">2</span>], label=<span class="hljs-string">&#x27;Back Fill&#x27;</span>, color=<span class="hljs-string">&#x27;firebrick&#x27;</span>, style=<span class="hljs-string">&quot;.-&quot;</span>)<br>    <br>    df[<span class="hljs-string">&#x27;rownum&#x27;</span>] = np.arange(df.shape[<span class="hljs-number">0</span>])<br>    df_nona = df.dropna(subset = [target_col])<br>    f = interp1d(df_nona[<span class="hljs-string">&#x27;rownum&#x27;</span>], df_nona[target_col])<br>    df[<span class="hljs-string">&#x27;linear_fill&#x27;</span>] = f(df[<span class="hljs-string">&#x27;rownum&#x27;</span>])<br>    df[<span class="hljs-string">&#x27;linear_fill&#x27;</span>].plot(title=<span class="hljs-string">&quot;Linear Fill&quot;</span>, ax=axes[<span class="hljs-number">3</span>], label=<span class="hljs-string">&#x27;Linear Fill&#x27;</span>, color=<span class="hljs-string">&#x27;brown&#x27;</span>, style=<span class="hljs-string">&quot;.-&quot;</span>)<br><br>    f2 = interp1d(df_nona[<span class="hljs-string">&#x27;rownum&#x27;</span>], df_nona[target_col], kind=<span class="hljs-string">&#x27;cubic&#x27;</span>)<br>    df[<span class="hljs-string">&#x27;cubic_fill&#x27;</span>] = f2(df[<span class="hljs-string">&#x27;rownum&#x27;</span>])<br>    df[<span class="hljs-string">&#x27;cubic_fill&#x27;</span>].plot(title=<span class="hljs-string">&quot;Cubic Fill&quot;</span>, ax=axes[<span class="hljs-number">4</span>], label=<span class="hljs-string">&#x27;Cubic Fill&#x27;</span>, color=<span class="hljs-string">&#x27;red&#x27;</span>, style=<span class="hljs-string">&quot;.-&quot;</span>)<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">knn_mean</span>(<span class="hljs-params">ts, n</span>):<br>        out = np.copy(ts)<br>        <span class="hljs-keyword">for</span> i, val <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(ts):<br>            <span class="hljs-keyword">if</span> np.isnan(val):<br>                n_by_2 = np.ceil(n/<span class="hljs-number">2</span>)<br>                lower = np.<span class="hljs-built_in">max</span>([<span class="hljs-number">0</span>, <span class="hljs-built_in">int</span>(i-n_by_2)])<br>                upper = np.<span class="hljs-built_in">min</span>([<span class="hljs-built_in">len</span>(ts)+<span class="hljs-number">1</span>, <span class="hljs-built_in">int</span>(i+n_by_2)])<br>                ts_near = np.concatenate([ts[lower:i], ts[i:upper]])<br>                out[i] = np.nanmean(ts_near)<br>        <span class="hljs-keyword">return</span> out<br>    <br>    df[<span class="hljs-string">&#x27;knn_mean&#x27;</span>] = knn_mean(df[target_col].values, <span class="hljs-number">8</span>)<br>    df[<span class="hljs-string">&#x27;knn_mean&#x27;</span>].plot(title=<span class="hljs-string">&quot;KNN Mean&quot;</span>, ax=axes[<span class="hljs-number">5</span>], label=<span class="hljs-string">&#x27;KNN Mean&#x27;</span>, color=<span class="hljs-string">&#x27;tomato&#x27;</span>, alpha=<span class="hljs-number">0.5</span>, style=<span class="hljs-string">&quot;.-&quot;</span>)<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">seasonal_mean</span>(<span class="hljs-params">ts, n, lr=<span class="hljs-number">0.7</span></span>):<br>        out = np.copy(ts)<br>        <span class="hljs-keyword">for</span> i, val <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(ts):<br>            <span class="hljs-keyword">if</span> np.isnan(val):<br>                ts_seas = ts[i-<span class="hljs-number">1</span>::-n]  <span class="hljs-comment"># previous seasons only</span><br>                <span class="hljs-keyword">if</span> np.isnan(np.nanmean(ts_seas)):<br>                    ts_seas = np.concatenate([ts[i-<span class="hljs-number">1</span>::-n], ts[i::n]])  <span class="hljs-comment"># previous and forward</span><br>                out[i] = np.nanmean(ts_seas) * lr<br>        <span class="hljs-keyword">return</span> out<br><br>    df[<span class="hljs-string">&#x27;seasonal_mean&#x27;</span>] = seasonal_mean(df[target_col], n=<span class="hljs-number">12</span>, lr=<span class="hljs-number">1.25</span>)<br>    df[<span class="hljs-string">&#x27;seasonal_mean&#x27;</span>].plot(title=<span class="hljs-string">&quot;Seasonal Mean&quot;</span>, ax=axes[<span class="hljs-number">6</span>], label=<span class="hljs-string">&#x27;Seasonal Mean&#x27;</span>, color=<span class="hljs-string">&#x27;blue&#x27;</span>, alpha=<span class="hljs-number">0.5</span>, style=<span class="hljs-string">&quot;.-&quot;</span>)<br>    <br>    plt.show()<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">GM11</span>(<span class="hljs-params">x0</span>): <span class="hljs-comment"># 自定义灰色预测函数</span><br>    <span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np<br>    x1 = x0.cumsum() <span class="hljs-comment">#1-AGO序列</span><br>    z1 = (x1[:<span class="hljs-built_in">len</span>(x1)-<span class="hljs-number">1</span>] + x1[<span class="hljs-number">1</span>:])/<span class="hljs-number">2.0</span> <span class="hljs-comment">#紧邻均值（MEAN）生成序列</span><br>    z1 = z1.reshape((<span class="hljs-built_in">len</span>(z1),<span class="hljs-number">1</span>))<br>    B = np.append(-z1, np.ones_like(z1), axis = <span class="hljs-number">1</span>)<br>    Yn = x0[<span class="hljs-number">1</span>:].reshape((<span class="hljs-built_in">len</span>(x0)-<span class="hljs-number">1</span>, <span class="hljs-number">1</span>))<br>    [[a],[b]] = np.dot(np.dot(np.linalg.inv(np.dot(B.T, B)), B.T), Yn) <span class="hljs-comment">#计算参数</span><br>    f = <span class="hljs-keyword">lambda</span> k: (x0[<span class="hljs-number">0</span>]-b/a)*np.exp(-a*(k-<span class="hljs-number">1</span>))-(x0[<span class="hljs-number">0</span>]-b/a)*np.exp(-a*(k-<span class="hljs-number">2</span>)) <span class="hljs-comment">#还原值</span><br>    delta = np.<span class="hljs-built_in">abs</span>(x0 - np.array([f(i) <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>,<span class="hljs-built_in">len</span>(x0)+<span class="hljs-number">1</span>)]))<br>    C = delta.std()/x0.std()<br>    P = <span class="hljs-number">1.0</span>*(np.<span class="hljs-built_in">abs</span>(delta - delta.mean()) &lt; <span class="hljs-number">0.6745</span>*x0.std()).<span class="hljs-built_in">sum</span>()/<span class="hljs-built_in">len</span>(x0)<br>    <span class="hljs-keyword">return</span> f, a, b, x0[<span class="hljs-number">0</span>], C, P <span class="hljs-comment">#返回灰色预测函数、a、b、首项、方差比、小残差概率</span><br>    <br>index = pd.date_range(<span class="hljs-string">&#x27;2020-03-09&#x27;</span>,<span class="hljs-string">&#x27;2021-02-01&#x27;</span>, freq=<span class="hljs-string">&#x27;B&#x27;</span>)<br>t_df = pd.DataFrame(<span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(index)),index=index,columns=[<span class="hljs-string">&#x27;target&#x27;</span>])<br>t_df = t_df.resample(<span class="hljs-string">&#x27;D&#x27;</span>).asfreq()<br>fill_matrix(t_df,<span class="hljs-string">&#x27;target&#x27;</span>)<br></code></pre></td></tr></table></figure>
+<h3 id="calculate">calculate</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># !!! 计算之前fil</span><br><span class="hljs-comment"># statistic</span><br>df[<span class="hljs-string">&#x27;Age&#x27;</span>].mean() <br>df[<span class="hljs-string">&#x27;Age&#x27;</span>].var()<br><span class="hljs-comment"># shift</span><br>df.pct_change(periods=)<br>df.diff(periods=)<br><span class="hljs-comment"># cumulative</span><br>df.cumsum(),df.cumprod()<br><br>df[basic[-<span class="hljs-number">1</span>]] = df[basic[-<span class="hljs-number">1</span>]]/<span class="hljs-number">100</span><br><br>final_df[name] = df.close.values/df.<span class="hljs-built_in">open</span>.values - <span class="hljs-number">1</span><br><span class="hljs-comment"># final_df.loc[:,&#x27;&#x27;]</span><br><span class="hljs-comment"># get min of id</span><br>idxmin()<br>df.idxmax(axis = <span class="hljs-number">1</span>, skipna = <span class="hljs-literal">True</span>)<br><br><span class="hljs-comment"># ema</span><br>exp = df.ewm(	<br>    span=period,<br>    <span class="hljs-comment"># 是否使用递推式</span><br>    adjust=<span class="hljs-literal">False</span><br>).mean()<br><br><span class="hljs-comment"># cma</span><br>df = df.expanding().mean()<br><br><span class="hljs-comment"># sma</span><br>df = df.rolling(<br>    window=period<br>).mean()<br><br><span class="hljs-comment"># subtract series</span><br><span class="hljs-comment"># 默认axis = 1 -&gt; 调整角度 .T</span><br>df.sub(sr, axis = <span class="hljs-number">1</span>)<br><span class="hljs-comment"># 沿着轴线</span><br><br><span class="hljs-comment"># numpy</span><br>numpy.dot<br>np.log(target)<br></code></pre></td></tr></table></figure>
+<h3 id="colindex">col/index</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs python">df.index = <span class="hljs-built_in">list</span><br>df.columns = <span class="hljs-built_in">list</span><br>df.rename(columns=&#123;<span class="hljs-string">&#x27;c_per&#x27;</span>:<span class="hljs-string">&#x27;result&#x27;</span>&#125;,inplace=<span class="hljs-literal">True</span>)<br>df.T <br><span class="hljs-comment"># new sequential index is used</span><br>df.reset_index(drop=<span class="hljs-literal">False</span>)<br><span class="hljs-comment"># reindex -&gt; 填充逻辑</span><br>mask = mask.reindex(price_df.index.values)<br><br><span class="hljs-comment"># change index</span><br>as_list = df.index.tolist()<br>idx = as_list.index(<span class="hljs-string">&#x27;Republic of Korea&#x27;</span>)<br>as_list[idx] = <span class="hljs-string">&#x27;South Korea&#x27;</span><br>df.index = as_list<br></code></pre></td></tr></table></figure>
+<h3 id="adddrop">add/drop</h3>
+<p><strong>为了保证数据类型的一致 通过 df2.values
+来添加新列</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># columns</span><br><span class="hljs-comment"># dict map to existing value</span><br><span class="hljs-comment"># mask column</span><br>mask = df.isnull().<span class="hljs-built_in">sum</span>(axis=<span class="hljs-number">0</span>) / <span class="hljs-built_in">len</span>(df) &lt; <span class="hljs-number">0.2</span><br>df = df.T[mask].T<br>mask = df.isnull().<span class="hljs-built_in">sum</span>(axis=<span class="hljs-number">1</span>)/<span class="hljs-built_in">len</span>(df.columns) &lt; <span class="hljs-number">0.2</span><br>df = df[mask]<br><br><span class="hljs-comment"># mask </span><br>df[<span class="hljs-built_in">len</span>(df.columns)] = <span class="hljs-built_in">list</span>/<span class="hljs-built_in">dict</span><br>df.loc[:,column_name] = <span class="hljs-built_in">list</span><br> <br>df.insert(position,column_name,val,<span class="hljs-literal">True</span>)<br><span class="hljs-comment">#rows</span><br><span class="hljs-comment">#若没有该index,默认为在最后插入</span><br>df.loc[index] = <span class="hljs-built_in">list</span><br><br><span class="hljs-comment"># drop</span><br>df.drop([<span class="hljs-string">&#x27;a&#x27;</span>], axis=<span class="hljs-number">1</span>, inplace=<span class="hljs-literal">True</span>)<br><span class="hljs-comment"># 只所有</span><br>df = df.dropna(axis = <span class="hljs-number">0</span>, how = <span class="hljs-string">&#x27;all&#x27;</span>)<br></code></pre></td></tr></table></figure>
+<h3 id="replace">replace</h3>
+<p>3-dimension</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># a. column_name(默认为空) </span><br><span class="hljs-comment"># b. to_replace</span><br><span class="hljs-comment"># c. value</span><br><span class="hljs-comment"># 针对部分类</span><br>columns = [<span class="hljs-string">&#x27;A&#x27;</span>, <span class="hljs-string">&#x27;B&#x27;</span>]<br>new_df = df.loc[:, columns]<br>new_df.replace(<span class="hljs-number">3</span>,<span class="hljs-number">1</span>,inplace=<span class="hljs-literal">True</span>)<br>df.loc[:, columns] = new_df<br><span class="hljs-comment"># pandas dtypes 并非严格规定 可以用其他数据类型填充</span><br><span class="hljs-comment"># 默认并不插入 df为引用 在函数内inplace可直接改变</span><br>df.replace(b, value=c,inplace=<span class="hljs-literal">True</span>)<br><span class="hljs-comment"># regex r&#x27;\1&#x27;</span><br>df.replace(&#123;a : b&#125;, &#123;a : c&#125;,regex=<span class="hljs-literal">True</span>)<br>df.replace(regex=&#123;b:c&#125;)<br>df.replace(a:b:c,regex=<span class="hljs-literal">True</span>)<br><span class="hljs-comment"># fillna -&gt; type np.nan regex并不会影响nan	</span><br>df.fillna(value=,inplace=<span class="hljs-literal">True</span>)<br></code></pre></td></tr></table></figure>
+<h3 id="sort">sort</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># 1顺序 0逆序</span><br>df.sort_values(by=[<span class="hljs-string">&#x27;a&#x27;</span>, <span class="hljs-string">&#x27;b&#x27;</span>], ascending=[<span class="hljs-number">1</span>, <span class="hljs-number">1</span>])<br>df.sort_index()<br><span class="hljs-comment"># rank</span><br>df.rank(ascending,pct)<br></code></pre></td></tr></table></figure>
+<h2 id="datatype">datatype</h2>
+<h3 id="muti-index">muti-index</h3>
+<p>多索引</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># multi-index </span><br><span class="hljs-comment"># 根据等级 level 代表标题的层次</span><br><span class="hljs-comment"># show name</span><br>s.index.names<br><span class="hljs-comment"># series to df</span><br>s.unstack(level=<span class="hljs-number">1</span>)<br><br><span class="hljs-comment"># set-multi</span><br>multi = df.set_index([<span class="hljs-string">&#x27;Film&#x27;</span>, <span class="hljs-string">&#x27;Chapter&#x27;</span>, <span class="hljs-string">&#x27;Race&#x27;</span>, <span class="hljs-string">&#x27;Character&#x27;</span>])<br><br><span class="hljs-comment"># sort_index</span><br>multi = df.set_index([‘Film’, ‘Chapter’, ‘Race’, ‘Character’]).sort_index()<br><br><span class="hljs-comment"># remove</span><br>multi.reset_index()<br><br><span class="hljs-comment"># loc</span><br>multi.loc[(<span class="hljs-string">&#x27;The Fellowship Of The Ring&#x27;</span>, <span class="hljs-string">&#x27;01: Prologue&#x27;</span>), :]<br><span class="hljs-comment"># 跳过</span><br>multi.loc[(‘The Fellowship Of The Ring’,<span class="hljs-built_in">slice</span>(<span class="hljs-literal">None</span>),’Elf’), :].head(<span class="hljs-number">3</span>)<br><br><span class="hljs-comment"># cross-section get_datas</span><br>multi.xs(<span class="hljs-string">&#x27;Isildur&#x27;</span>, level=<span class="hljs-string">&#x27;Character&#x27;</span>).<span class="hljs-built_in">sum</span>()<br><br><span class="hljs-comment"># pivot_table</span><br><span class="hljs-comment"># word 为统计的目标</span><br><span class="hljs-comment"># 需要的分类: film，race，charactor </span><br><span class="hljs-comment"># 需要计算: film</span><br>pivoted = df.pivot_table(<br>    index = [<span class="hljs-string">&#x27;Race&#x27;</span>,<span class="hljs-string">&#x27;Character&#x27;</span>],<br>	columns = <span class="hljs-string">&#x27;Film&#x27;</span>,<br>    <span class="hljs-comment"># 针对所有的分出类来的word（包含了其他标签 chaper...）</span><br>	aggfunc = <span class="hljs-string">&#x27;sum&#x27;</span>,<br>    <span class="hljs-comment"># 设置一个针对所有列的量</span><br>	margins = <span class="hljs-literal">True</span>, <span class="hljs-comment"># total column</span><br>	margins_name = <span class="hljs-string">&#x27;All Films&#x27;</span>,<br>	<span class="hljs-comment"># 填充</span><br>    fill_value = <span class="hljs-number">0</span><br>).sort_index()<br><span class="hljs-comment"># 对列进行排序</span><br>order = [(<span class="hljs-string">&#x27;Words&#x27;</span>, <span class="hljs-string">&#x27;The Fellowship Of The Ring&#x27;</span>),<br>         (<span class="hljs-string">&#x27;Words&#x27;</span>, <span class="hljs-string">&#x27;The Two Towers&#x27;</span>),<br>         (<span class="hljs-string">&#x27;Words&#x27;</span>, <span class="hljs-string">&#x27;The Return Of The King&#x27;</span>), <br>         (<span class="hljs-string">&#x27;Words&#x27;</span>, <span class="hljs-string">&#x27;All Films&#x27;</span>)]<br>pivoted = pivoted.sort_values(by=(<span class="hljs-string">&#x27;Words&#x27;</span>, <span class="hljs-string">&#x27;All Films&#x27;</span>), ascending=<span class="hljs-literal">False</span>)<br>pivoted = pivoted.reindex(order, axis=<span class="hljs-number">1</span>)<br><span class="hljs-comment"># 需要的值：words</span><br><span class="hljs-comment"># 简易获取列</span><br>pivoted.loc[<span class="hljs-string">&#x27;Hobbit&#x27;</span>]<br></code></pre></td></tr></table></figure>
+<h3 id="category">category</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># create</span><br>pd.Series(<span class="hljs-built_in">list</span>(<span class="hljs-string">&#x27;abbccc&#x27;</span>)).astype(<span class="hljs-string">&#x27;category&#x27;</span>)<br><br><span class="hljs-comment"># get_category</span><br>s.cat.categories<br><br><span class="hljs-comment"># description -&gt; like string</span><br><span class="hljs-comment"># rename </span><br>s.cat.categories = [<span class="hljs-string">&quot;Group %s&quot;</span> % g <span class="hljs-keyword">for</span> g <span class="hljs-keyword">in</span> s.cat.categories]<br>s = s.cat.rename_categories(&#123;<span class="hljs-number">1</span>: <span class="hljs-string">&quot;x&quot;</span>, <span class="hljs-number">2</span>: <span class="hljs-string">&quot;y&quot;</span>, <span class="hljs-number">3</span>: <span class="hljs-string">&quot;z&quot;</span>&#125;)<br><br><span class="hljs-comment"># ordered</span><br>s.sort_values(inplace=<span class="hljs-literal">True</span>)<br>s = s.cat.as_ordered()<br>s = s.cat.set_categories([<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">1</span>], ordered=<span class="hljs-literal">True</span>)<br><br></code></pre></td></tr></table></figure>
+<h3 id="encode">encode</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># convert type</span><br>new_date = series.astype(<span class="hljs-string">&#x27;datetime64[ns, US/Eastern]&#x27;</span>)<br><br><span class="hljs-comment"># hot encode</span><br>cabin_df = pd.get_dummies(<br>    df[[<span class="hljs-string">&#x27;Cabin&#x27;</span>]], columns=[<span class="hljs-string">&quot;Cabin&quot;</span>], prefix=[<span class="hljs-string">&quot;Cabin_Type&quot;</span>] <br>)<br>df=df.join(cabin_df)<br><br><span class="hljs-comment"># lable encode</span><br>df.loc[:,<span class="hljs-string">&quot;Pclass&quot;</span>] = df[<span class="hljs-string">&quot;Pclass&quot;</span>].astype(<span class="hljs-string">&#x27;category&#x27;</span>)<br>df[<span class="hljs-string">&#x27;Pclass_cat&#x27;</span>] = df[<span class="hljs-string">&quot;Pclass&quot;</span>].cat.codes<br></code></pre></td></tr></table></figure>
+<h3 id="null">null</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python">df.fillna(value=,inplace=<span class="hljs-literal">True</span>)<br><span class="hljs-comment"># 向上找非空</span><br>df.fillna(method=<span class="hljs-string">&#x27;ffill&#x27;</span>) <br><span class="hljs-comment"># notnull</span><br>df[<span class="hljs-string">&#x27;name&#x27;</span>].notnull()<br><span class="hljs-comment"># 判断</span><br>pd.isnull()<br></code></pre></td></tr></table></figure>
+<p>插值</p>
+<h3 id="datetime">datetime</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># str to datatime</span><br>pd.to_datetime(<span class="hljs-built_in">format</span>)<br>datetime.strptime(<span class="hljs-built_in">str</span>,<span class="hljs-string">&quot;%d%m%y,%H%M%S&quot;</span>) <br><span class="hljs-comment"># generate datatimes</span><br>dt.now()<br>dt.date(<span class="hljs-number">2005</span>,<span class="hljs-number">2</span>,<span class="hljs-number">14</span>)<br><span class="hljs-comment"># standard</span><br>start_date = date + <span class="hljs-string">&#x27; 09:00:00&#x27;</span><br>end_date = date + <span class="hljs-string">&#x27; 15:00:00&#x27;</span><br><span class="hljs-comment"># get weekday</span><br>df_index.index[<span class="hljs-number">0</span>].weekday()<br><span class="hljs-comment"># time to str</span><br>datetime.now().strftime(<span class="hljs-string">&quot;%H:%M:%S&quot;</span>)<br><span class="hljs-comment"># time delta</span><br>delta.days<br>pd.Timedelta(<span class="hljs-number">1</span>, unit=<span class="hljs-string">&quot;d&quot;</span>)<br>pd.Timedelta(pd.offsets.Day(<span class="hljs-number">2</span>))<br>pd.Timedelta(days=<span class="hljs-number">1</span>)<br><span class="hljs-comment"># datestamp 对于单一的日期而言 生产 timestamp</span><br>pd.to_datetime(<span class="hljs-string">&#x27;2020-08-01&#x27;</span>)<br><span class="hljs-comment"># 需加入转换成日期</span><br>start_date = pd.to_datetime(<span class="hljs-string">&#x27;2020-08-01&#x27;</span>).date()<br><span class="hljs-comment"># 运算</span><br>start_date - pd.Timedelta(days=<span class="hljs-number">10</span>)<br><br><span class="hljs-comment"># filter by year</span><br>final_df[<span class="hljs-string">&#x27;report_date&#x27;</span>] = pd.to_datetime(final_df[<span class="hljs-string">&#x27;report_date&#x27;</span>])<br>final_df[<span class="hljs-string">&#x27;year&#x27;</span>] = final_df.report_date.dt.year<br></code></pre></td></tr></table></figure>
+<h3 id="str">str</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs python">df.<span class="hljs-built_in">str</span>.upper()<br></code></pre></td></tr></table></figure>
+<h3 id="apply">apply</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python">df.loc[:, <span class="hljs-string">&#x27;A&#x27;</span>] = df.loc[:, <span class="hljs-string">&#x27;A&#x27;</span>].apply(<br>    <span class="hljs-keyword">lambda</span> x: <span class="hljs-number">2</span> <span class="hljs-keyword">if</span> np.isnan(x) <span class="hljs-keyword">else</span> np.random.randint(<span class="hljs-number">2</span>,<span class="hljs-number">8</span>)<br>)<br></code></pre></td></tr></table></figure>
+<h3 id="io">I/O</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> os<br>base_path = os.path.abspath(os.path.join(__file__, os.pardir))<br><br>df = pd.read_excel(<br>    <span class="hljs-string">&#x27;a.xlsx&#x27;</span>,<br>    <span class="hljs-comment"># index_col=None,</span><br>    <span class="hljs-comment"># col</span><br>    header = <span class="hljs-literal">None</span>,<br>    <span class="hljs-comment"># 数据类型</span><br>    converters=&#123;<br>        <span class="hljs-string">&#x27;names&#x27;</span>:<span class="hljs-built_in">str</span>,<br>    &#125;<br>)<br><br>pd.read_csv()<br><span class="hljs-comment"># set index as an independent column</span><br>df.to_csv(<br>    <span class="hljs-string">&#x27;a.csv&#x27;</span>,<br>    index=<span class="hljs-literal">None</span>,<br>    index_col=<span class="hljs-number">0</span>,<br>)<br><span class="hljs-comment"># csv encoding </span><br><br><span class="hljs-comment"># to_excel_sheet</span><br><span class="hljs-keyword">with</span> pd.ExcelWriter(<span class="hljs-string">&#x27;a.xlsx&#x27;</span>) <span class="hljs-keyword">as</span> writer:<br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> a_list:<br>        df.to_excel(writer, sheet_name=i)<br><br><span class="hljs-comment"># read_sheet</span><br><br>xls = pd.ExcelFile(data_path)<br><span class="hljs-keyword">for</span> val <span class="hljs-keyword">in</span> xls.sheet_names:<br>    df = pd.read_excel(xls,val)<br><br></code></pre></td></tr></table></figure>
+<h2 id="notice">notice</h2>
+<h3 id="axis">axis</h3>
+<ol type="1">
+<li>根据访问的顺序 一维 axis = 0 二维 先列后行</li>
+<li>calculate(axis) -&gt; 沿着axis进行运算/插入</li>
+</ol>
+<h3 id="viewreplace">view/replace</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># view 只代表copy</span><br>df[df.a &gt; <span class="hljs-number">5</span>][<span class="hljs-string">&#x27;b&#x27;</span>]<br><span class="hljs-comment"># 赋值</span><br>df.loc[df.a &gt; <span class="hljs-number">5</span>, <span class="hljs-string">&#x27;b&#x27;</span>] = <span class="hljs-number">4</span><br><span class="hljs-comment"># 分成两段不改变原来的df</span><br><span class="hljs-comment"># join 不需要 inplace=true</span><br></code></pre></td></tr></table></figure>
+<h3 id="storage">storage</h3>
+<p>在函数中调用所做的改变影响全局 等号只改变引用
+在循环的调用中应使用df.copy()</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># series to df</span><br>a.to_frame()<br>pd.series(,index=df.columns,name=df.index)<br>df.append(<span class="hljs-built_in">list</span>)<br><span class="hljs-comment"># list/numpy/dict to series/dataframe</span><br>series = pd.series(<span class="hljs-built_in">list</span>)<br>df = pd.dataframe(<span class="hljs-built_in">dict</span>,columns=[])<br></code></pre></td></tr></table></figure>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Machine-Learning/">Machine Learning</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/01/07/preprocess/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">preprocess</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/12/06/dsp/">
+                        <span class="hidden-mobile">A survey on 5G channel encoding technology</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        loader: {
+          load: ['ui/lazy']
+        },
+        options: {
+          renderActions: {
+            findScript: [10, doc => {
+              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+                const display = !!node.type.match(/; *mode=display/);
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                const text = document.createTextNode('');
+                node.parentNode.replaceChild(text, node);
+                math.start = { node: text, delim: '', n: 0 };
+                math.end = { node: text, delim: '', n: 0 };
+                doc.math.push(math);
+              });
+            }, '', false],
+            insertedScript: [200, () => {
+              document.querySelectorAll('mjx-container').forEach(node => {
+                let target = node.parentNode;
+                if (target.nodeName.toLowerCase() === 'li') {
+                  target.parentNode.classList.add('has-jax');
+                }
+              });
+            }, '', false]
+          }
+        }
+      };
+    </script>
+
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

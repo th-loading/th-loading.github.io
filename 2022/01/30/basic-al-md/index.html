@@ -1,0 +1,714 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/images/icon.png">
+  <link rel="icon" href="/images/icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="th-loading">
+  <meta name="keywords" content="">
+  <meta name="description" content="algorithm 基本思路 广搜 猜想(重构问题) 深搜 推理(基于性质，选择工具) 启发式搜索 根据当前推理的流程，但往往无法得到一个正确的全局函数（Intuition） 数据结构 允许存在待处理的元素，添加一个标记位，最后再处理(懒更新) 其中包括线段树的懒更新，保存index的单调队列，存在冗余项的优先队列 数组结构  双向链表 + 哈希表 hashmap O(1) 寻址（！性能可能退化）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基本算法思路">
+<meta property="og:url" content="http://example.com/2022/01/30/basic-al-md/index.html">
+<meta property="og:site_name" content="loading">
+<meta property="og:description" content="algorithm 基本思路 广搜 猜想(重构问题) 深搜 推理(基于性质，选择工具) 启发式搜索 根据当前推理的流程，但往往无法得到一个正确的全局函数（Intuition） 数据结构 允许存在待处理的元素，添加一个标记位，最后再处理(懒更新) 其中包括线段树的懒更新，保存index的单调队列，存在冗余项的优先队列 数组结构  双向链表 + 哈希表 hashmap O(1) 寻址（！性能可能退化）">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-01-30T08:01:59.000Z">
+<meta property="article:modified_time" content="2023-09-19T12:04:21.712Z">
+<meta property="article:author" content="th-loading">
+<meta property="article:tag" content="Algorithm">
+<meta name="twitter:card" content="summary_large_image">
+  
+  <title>基本算法思路 - loading</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.8.12","typing":{"enable":false,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname"}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>loading</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/images/tb.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="基本算法思路">
+              
+                基本算法思路
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2022-01-30 16:01" pubdate>
+        2022年1月30日 下午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.6k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      8 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">基本算法思路</h1>
+            
+            <div class="markdown-body">
+              <h1 id="algorithm">algorithm</h1>
+<h2 id="基本思路">基本思路</h2>
+<p>广搜 猜想(重构问题)<br />
+深搜 推理(基于性质，选择工具)<br />
+启发式搜索
+根据当前推理的流程，但往往无法得到一个正确的全局函数（Intuition）</p>
+<h2 id="数据结构">数据结构</h2>
+<p>允许存在待处理的元素，添加一个标记位，最后再处理(懒更新)<br />
+其中包括线段树的懒更新，保存index的单调队列，存在冗余项的优先队列</p>
+<h3 id="数组结构">数组结构</h3>
+<ol type="1">
+<li><p>双向链表 + 哈希表<br />
+hashmap O(1) 寻址（！性能可能退化）<br />
+O(1)删除 链表<br />
+如: LRU / LFU</p></li>
+<li><p>栈 | 双向队列<br />
+维护一个距离上的关联, 只能增加修改两侧元素<br />
+!
+对于弹出的元素，当前元素代表真正的解的位置，对于当前元素，栈内的元素代表解的空间<br />
+可用于递归调用的实现<br />
+用于运算符等涉及空间逻辑关系<br />
+在0－1BFS中双向队列可以完成最小路径的寻找</p></li>
+<li><p>双指针<br />
+快慢指针可以判断链表的环<br />
+滑动窗口维护单调性<br />
+T-F问题 区间有唯一性</p></li>
+<li><p>单调队列<br />
+可以logn寻址，但只能增加/修改元素，或只需要弹出一侧的元素<br />
+!
+对于弹出的元素，当前元素代表真正的解的位置，对于当前元素，栈内的元素代表解的空间<br />
+!
+解的单调性证明：逆向考虑，若解中存在递减元素，则一定不符合条件，因此队列递增<br />
+若弹出条件是否等于，确定弹出元素的解是否为严格小于，而当前元素可以选择严格小于，也可以选择小于等于<br />
+在最大递增子串中可以用来更新维护贪心的状态</p>
+<p>数据的变化具有单调性，只需要记录当前位置即可
+可以结合二分方便状态转移。</p></li>
+<li><p>离散化区间</p></li>
+</ol>
+<h3 id="树类结构">树类结构</h3>
+<ol type="1">
+<li>Set(红黑树)<br />
+可以O(logn)删除，O(logn）寻址<br />
+multiset 多个元素<br />
+难以进行区间处理<br />
+注意求指针距离的复杂度为O(n)， 不同于vector<br />
+出现区间选择，删除的时候，不一定要用线段树，红黑树可以在没有元素的时候节省时间复杂度。</li>
+<li>堆 | 优先队列<br />
+O(logn)插入<br />
+堆无法寻址删除 但可以维护一个贪心状态<br />
+两个堆(对顶堆)可以维护一个中位数的值<br />
+</li>
+<li>线段树<br />
+基于已有的区间范围，维护每个区间数值上的关系<br />
+</li>
+<li>并查集<br />
+logn合并集合，但不能拆集合<br />
+通过排序，根据单调性合并，二维接雨水<br />
+带权值的路径压缩 / 也可以bfs 蓝桥杯 查询累和</li>
+</ol>
+<h2 id="数理性质">数理性质</h2>
+<h3 id="数论">数论</h3>
+<ol type="1">
+<li>组合相关<br />
+卢卡斯定理快速计算组合<br />
+生成next permulation<br />
+C(n, m) = C(不包含当前元素) + C(包含当前元素) = C(n - 1, m) + C(n - 1, m
+- 1)
+<ol type="1">
+<li>累加求和，从杨辉三角可以看出，若C(n, m)中m不变，求和可以合并<br />
+</li>
+<li>通过dp思想枚举最后一个元素, 防止元素重复<br />
+</li>
+<li>经典组合模型,小球放入箱子的组合数问题,
+如存在一定需要放的无区别小球，考虑隔板法, 对于可放可不放的小球<br />
+</li>
+</ol></li>
+<li>因子类 对于乘法逆元，egcd gcd log(n)(欧拉 需要知道质因子个数) <span
+class="math inline">\(a^{p - 1}\)</span><br />
+对于同余问题，注意加减乘都不改变同余的特性, 整除运算会改变,
+其中组合数需要用到卢卡斯定理<br />
+对于提取公因子个数 nsqrt(n) 提取质因子nsqrt(n)<br />
+质因数分解中剩余项为质数</li>
+</ol>
+<h3 id="图">图</h3>
+<ol type="1">
+<li>与直径相关的最长路问题</li>
+<li>删边得到最小环</li>
+</ol>
+<h3 id="函数">函数</h3>
+<ol type="1">
+<li>绝对值函数，<span class="math inline">\(|x - x_1| + |x - x_2| ... +
+|x - x_n|\)</span> 取中位数即可</li>
+</ol>
+<h3 id="几何">几何</h3>
+<ol type="1">
+<li>求K值</li>
+<li>凸包</li>
+</ol>
+<h3 id="数值计算">数值计算</h3>
+<ol type="1">
+<li><p>快速乘/幂 乘法 - 指数</p></li>
+<li><p>异或的性质 不具备分配律...</p></li>
+</ol>
+<h3 id="博弈论">博弈论</h3>
+<ol type="1">
+<li>逐步贪心讨论必胜态 - 注意奇数偶数 记忆化搜索判断是否有必胜态</li>
+</ol>
+<h3 id="信息论">信息论</h3>
+<ol type="1">
+<li>信息量 熵 设计实验</li>
+<li>随机数的生成</li>
+</ol>
+<h2 id="算法">算法</h2>
+<h3 id="重新组织问题">重新组织问题</h3>
+<ol type="1">
+<li><p>数理等价</p>
+<p>蚂蚁的相遇问题 - 改变身份<br />
+根据子集还原数组 - 每次删除施加影响的数值的集合<br />
+从Hash mask角度考虑</p>
+<p>子序列内不存在频次超过n/2即可删...<br />
+证明必要/充分性 - 蓝桥杯青蛙跳</p></li>
+<li><p>预处理/枚举</p>
+<p>先考虑第一个或最后一个值或整体特性<br />
+确认一种顺序 （拓扑 数值...) 考虑</p>
+<p>x, y选择较小的数，枚举值域 例题 Atcoder 蓝桥杯 分果果</p></li>
+<li><p>生成数据结构 建图分析 前缀和分析 区间分析</p></li>
+<li><p>逆向考虑<br />
+给定解 判断参数的范围 / 是否满足<br />
+(加密密码本匹配源码)</p></li>
+<li><p>计算时间复杂度 <span class="math inline">\(\sum \frac{1}{n} \sim
+\log n\)</span> 实际的时间度较小</p></li>
+</ol>
+<h3 id="冗余懒更新">冗余/懒更新</h3>
+<p>本质在于错开处理的时间，借助一些标记后面再处理。
+对于复杂计算，考虑先计算再回退 懒更新的思路 后面再解决</p>
+<h3 id="二分">二分</h3>
+<ol type="1">
+<li>f(x)的二元性<br />
+</li>
+<li>边界的讨论</li>
+</ol>
+<h3 id="状态转移">状态转移</h3>
+<p>基于一组最难满足的解</p>
+<ol type="1">
+<li><p>转移思路<br />
+可以通过遍历增加限制，或多求几遍值<br />
+对存在单调条件，可以尝试多次或逆向更新<br />
+对不满足拓扑顺序,
+增加一个以当前元素结尾的条件，或预先进行一次拓扑排序<br />
+对环的处理 - 倍增数组，限定长度为n<br />
+对于重复数，合并反而减少了信息量（总长度有限制），单个元素的转移更加灵活，删与被删，不需计数<br />
+对于数据量少，考虑状态压缩，枚举子集，并判断转移的有效性<br />
+对于组合数，使用限定最后元素来定义dp，否则会重复计数,
+结合组合公式，优化DP<br />
+对涉及到多个主体的问题，需要设置步数/轮数，防止重复更新<br />
+对于涉及多个元素联系的问题，考虑枚举还没发生的状态</p></li>
+<li><p>检验 | 优化<br />
+画出状态转移矩阵<br />
+最佳转移点是否离散或有单调性<br />
+重新排列合并公式 前缀和<br />
+转化为记忆化搜索剪枝</p></li>
+<li><p>else<br />
+注意对遍历过而不能完成的状态 -1（未遍历） - INF（失败） 区分<br />
+可以使用map防止溢出</p></li>
+</ol>
+<h3 id="搜索">搜索</h3>
+<ol type="1">
+<li>递归搜索 (dfs)<br />
+condition - receive - execution - return<br />
+搜索每个子状态 - 可以结合记忆化<br />
+汉诺塔拆分状态<br />
+</li>
+<li>队列搜索<br />
+dijkstra 优先队列 以单调递增量作为距离即可<br />
+0-1 bfs有隐含条件<br />
+</li>
+<li>基于DP的搜索<br />
+spfa floy...<br />
+</li>
+<li>基于贪心简化循环<br />
+bit角度, ++ - lowbit(i)<br />
+几何性质, 考虑两条相邻直线的k值即可</li>
+</ol>
+<h2 id="经典问题">经典问题</h2>
+<h3 id="字符串处理">字符串处理</h3>
+<ol type="1">
+<li><p>子串匹配类</p>
+<p>KMP hash trie 分隔符哈希...</p></li>
+<li><p>回文</p></li>
+</ol>
+<h3 id="图树">图/树</h3>
+<ol type="1">
+<li><p>距离类<br />
+聚点 - 源点 网络流 dijkstra spfa floy bfs dfs 剪枝<br />
+直径等 多次dfs</p></li>
+<li><p>拓扑/分类<br />
+拓扑排序/染色<br />
+并查集</p></li>
+<li><p>DP类</p>
+<p>binary lifting LCA</p></li>
+</ol>
+<h3 id="区间">区间</h3>
+<ol type="1">
+<li>数据结构+<br />
+优先队列 | 单调栈 | 双指针 | 线段树<br />
+</li>
+<li>预处理<br />
+pre/suf计算<br />
+</li>
+<li>区间DP</li>
+</ol>
+<h2 id="编程实现">编程实现</h2>
+<h3 id="数据类型">数据类型</h3>
+<ol type="1">
+<li>函数的返回值类型是int... 改为long long<br />
+</li>
+<li>初始化，d[0] = 0 - d[s]<br />
+</li>
+<li>位运算优先级低</li>
+</ol>
+<h3 id="逻辑顺序">逻辑顺序</h3>
+<ol type="1">
+<li>提前break and continue 影响了后面的结果<br />
+cin / cout cur[k] = cur[k - 1]<br />
+dp同理需要注意 dp[k] = dp[k - 1]<br />
+</li>
+<li>注意复用的值<br />
+链表的指向<br />
+! a[2] -= d 范围a[1] + a[2]</li>
+</ol>
+<h3 id="else">else</h3>
+<ol type="1">
+<li>输入输出 ? break会影响cin<br />
+</li>
+<li>数据逻辑，存在不属于链表中的点。<br />
+</li>
+<li>auto in lambda 是c++14的特性 decltype<br />
+</li>
+<li>trick assert 小数据暴搜 大数据优化 分开两个算法<br />
+</li>
+<li>对空间、时间、数值范围的估计</li>
+</ol>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Algorithm/">Algorithm</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/05/03/ml/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">机器学习基础</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/01/07/preprocess/">
+                        <span class="hidden-mobile">preprocess</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        loader: {
+          load: ['ui/lazy']
+        },
+        options: {
+          renderActions: {
+            findScript: [10, doc => {
+              document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+                const display = !!node.type.match(/; *mode=display/);
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+                const text = document.createTextNode('');
+                node.parentNode.replaceChild(text, node);
+                math.start = { node: text, delim: '', n: 0 };
+                math.end = { node: text, delim: '', n: 0 };
+                doc.math.push(math);
+              });
+            }, '', false],
+            insertedScript: [200, () => {
+              document.querySelectorAll('mjx-container').forEach(node => {
+                let target = node.parentNode;
+                if (target.nodeName.toLowerCase() === 'li') {
+                  target.parentNode.classList.add('has-jax');
+                }
+              });
+            }, '', false]
+          }
+        }
+      };
+    </script>
+
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
