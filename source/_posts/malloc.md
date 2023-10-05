@@ -1,5 +1,6 @@
 ---
-title: CS:APP Malloc Lab记录 date: 2023-07-12 23:29:21
+title: CS:APP Malloc Lab记录 
+date: 2023-07-12 23:29:21
 tags: CS 
 ---
 
@@ -263,5 +264,4 @@ Perf index = 44 (util) + 9 (thru) = 53/100
 ## 小结
 
 ### 满分思路
-
 
