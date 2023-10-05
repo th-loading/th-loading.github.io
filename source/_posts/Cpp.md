@@ -120,3 +120,84 @@ Node& operator+(const Node &a, const Node &b) {
     return c;
 }
 ```
+
+## Const Object
+
+借助const的操作符重载可以提供const对象的接口
+
+bitwise constness 不可改变对象内任何non-static对象 (可借助指针绕过编译器，不会有二进制级别的检测，消耗过大) 
+
+logical constness 可借助mutable。
+
+```c++
+#include <iostream>
+#include <vector>
+#include <cstring>
+
+using namespace std;
+
+class Base {
+private:
+public:
+    char* a;
+    vector<string> b;
+    string c;
+    Base(){
+        b.push_back("abc");
+        a = (char *) malloc(sizeof(char) * 6);
+        strcpy(a, "123");
+    }
+    // const 成员函数
+    const string& operator[] (size_t pos) const {
+        return b[pos];
+    }
+};
+
+int main() {
+    const Base a = Base();
+    // 确保了 *v 的值不会被改变
+    // 指针的类型经过封装后也有了限制
+    vector<string>::const_iterator v = a.b.begin();
+    // C 并没有措施
+    char *t = a.a;
+    *t = 'b';
+    // cout << a.a << endl; 成功改变
+    
+    // 只要得到具体的指针，就可以改变对应值
+    string *d = (string *)&a.b[0];
+    cout << *d << endl;
+    (*d)[0] = 'g';
+    cout << *d << endl;
+
+    // 类似的
+    string *q = (string *)&a[0];
+    (*q)[0] = 'p';
+    cout << *q << endl;
+    
+
+    const string g = "123";
+    // 并不会检查违法的类型转换，iterator会
+    string *kk = (string *)&g;
+    (*kk)[0] = '3';
+    cout << g << endl;
+        
+    // cout << *p << endl;
+    char *p = (char *)&a.b[0];
+    for (int i = 0; i < 20; i++) {
+        //  逐个bit找到对应位置
+        if (*p == 'p') *p = 'a';
+        p++;
+    }
+    // cout << typeid(p).name() << endl;
+    // cout << p << endl;
+    // p[0] = '2';
+    cout << a.b[0] << endl;
+    
+    // 同理，强制类型转换即可
+    const char gg[100] = "ggg";
+    cout << gg << endl;
+    *(char *)gg = 'a';
+    cout << gg << endl;
+}
+```
+
