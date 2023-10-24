@@ -18,3 +18,10 @@ word embedding  - similiar contexts  vector length (dimention) 维度
 
 word2vec： framework in 2013 for learning word vectors
 借助中间词预测context，通过极大似然求解最优的word vectors。定义center work 和 context word 两个vector，基于相似度的权重。指数化可以避免小于0的值 - softmax。 参数为所有词的所有向量。
+
+
+
+## RLHF
+
+通过reward model得到评价，PPO更新参数
+
