@@ -192,6 +192,61 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
+        <a href="/2023/02/19/attack/" target="_self">
+          CS:APP Attack Lab记录
+        </a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2023/02/19/attack/" target="_self">
+          
+          
+            
+          
+          前置知识
+缓冲区溢出
+将栈指针作为输入，则若缓冲区溢出，整个栈帧都会受影响。而栈需要保存返回的断点，若栈帧相邻，则可以改变返回函数的断点，从而返回到我们指定的一个函数。针对溢出，有三种处理方式
+
+设置段寻址的，每次的值不同的canary值，通过gdb可以知道单次的值
+
+
+
+每次的stack地址随机，不一定能跳装到字符串的地址运行。但全局变量和代码的位置不变。
+设置栈区的值为不可执行代码
+
+ROP
+
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2023-02-19 17:20" pubdate>
+              2023-02-19
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/CS/">CS</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
         <a href="/2023/02/17/bomb/" target="_self">
           CS:APP Bomb Lab记录
         </a>
@@ -621,45 +676,6 @@ basic
               <a href="/tags/Machine-Learning/">Machine Learning</a>
             
           </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2021/12/06/dsp/" target="_self">
-          A survey on 5G channel encoding technology
-        </a>
-      </h1>
-
-      <p class="index-excerpt">
-        <a href="/2021/12/06/dsp/" target="_self">
-          
-          
-            
-          
-          Abstract
-This article begins by explaining the meaning, motivation, and
-development of channel encoding. The concepts of two modern 5G code
-systems, particularly polar codes, are then discussed, along
-        </a>
-      </p>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2021-12-06 19:52" pubdate>
-              2021-12-06
-            </time>
-          </div>
-        
-        
         
       </div>
     </article>

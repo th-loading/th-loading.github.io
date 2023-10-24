@@ -24,7 +24,7 @@
 <meta property="og:description" content="前置知识 Encode embedding 将词汇表示出来 one-hot 每个词都是正交向量，如何表示相似性。 dense vector: a word meaning is given by the words that frequently appear close-by word embedding - similiar contexts vector length (dimention)">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2023-07-20T08:24:14.000Z">
-<meta property="article:modified_time" content="2023-09-19T12:04:21.712Z">
+<meta property="article:modified_time" content="2023-10-24T08:10:32.695Z">
 <meta property="article:author" content="th-loading">
 <meta property="article:tag" content="NLP">
 <meta name="twitter:card" content="summary_large_image">
@@ -198,7 +198,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      334 字
+      363 字
     </span>
   
 
@@ -251,6 +251,8 @@ appear close-by</p>
 work 和 context word
 两个vector，基于相似度的权重。指数化可以避免小于0的值 - softmax。
 参数为所有词的所有向量。</p>
+<h2 id="rlhf">RLHF</h2>
+<p>通过reward model得到评价，PPO更新参数</p>
 
             </div>
             <hr>
